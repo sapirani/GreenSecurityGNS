@@ -1,0 +1,109 @@
+version: "3"
+
+services:
+  namenode:
+    build: namenode
+    environment:
+      - CLUSTER_NAME=test
+      - HDFS_NAMENODE_HTTP_ADDRESS=0.0.0.0:9870     # Web UI port
+    env_file:
+      - ./hadoop.env
+
+    volumes:
+      - namenode:/hadoop/dfs/name
+    ports:
+      - "9870:9870"  # Web UI
+      - "9000:9000"  # HDFS port
+    networks:
+      - hadoop
+
+  resourcemanager:
+    build: resourcemanager
+    ports:
+      - "8088:8088"
+#    environment:
+#      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+    environment:
+      YARN_RESOURCEMANAGER_HEAPSIZE: 8192
+      HADOOP_OPTS: "$HADOOP_OPTS -Xloggc:/path/to/gc.log -XX:+PrintGCDetails -XX:+PrintGCDateStamps"
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode1:9864 datanode2:9864 datanode3:9864"
+    env_file:
+      - ./hadoop.env
+    depends_on:
+      - namenode
+    networks:
+      - hadoop
+
+  datanode1:
+    build: datanode
+#    environment:
+#      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+    env_file:
+      - ./hadoop.env
+    volumes:
+      - datanode1:/hadoop/dfs/data
+    depends_on:
+      - namenode
+    networks:
+      - hadoop
+    ports:
+      - "9861:9864"
+      - "8041:8042"
+    restart: always
+
+  datanode2:
+    build: datanode
+#    environment:
+#      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+    env_file:
+      - ./hadoop.env
+    volumes:
+      - datanode2:/hadoop/dfs/data
+    depends_on:
+      - namenode
+    networks:
+      - hadoop
+    ports:
+      - "9862:9864"
+      - "8042:8042"
+    restart: always
+
+  datanode3:
+    build: datanode
+#    environment:
+#      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+    env_file:
+      - ./hadoop.env
+    volumes:
+      - datanode3:/hadoop/dfs/data
+    depends_on:
+      - namenode
+    networks:
+      - hadoop
+    ports:
+      - "9863:9864"
+      - "8043:8042"
+    restart: always
+
+  historyserver:
+      build: historyserver
+      container_name: historyserver
+      volumes:
+        - hadoop_historyserver:/hadoop/yarn/timeline
+      env_file:
+        - ./hadoop.env
+      networks:
+        - hadoop
+      ports:
+        - "8188:8188"
+      restart: always
+
+volumes:
+  namenode:
+  datanode1:
+  datanode2:
+  datanode3:
+  hadoop_historyserver:
+
+networks:
+  hadoop:
