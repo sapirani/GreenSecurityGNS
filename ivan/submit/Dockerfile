@@ -1,4 +1,4 @@
-FROM hadoop-base
+FROM hadoop-env
 
 MAINTAINER Ivan Ermilov <ivan.s.ermilov@gmail.com>
 
