@@ -16,6 +16,6 @@ EXPOSE 9870
 ENV CLUSTER_NAME=test
 ENV HDFS_NAMENODE_HTTP_ADDRESS=0.0.0.0:9870
 
-COPY random_words.py ..
+COPY generate_random_words.py ..
 
 CMD ["/run.sh"]
