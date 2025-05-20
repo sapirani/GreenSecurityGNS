@@ -1,25 +1,25 @@
 #!/bin/bash
 
-echo "192.168.1.11 namenode" >> /etc/hosts
-echo "192.168.1.11 namenode-1" >> /etc/hosts
+echo "192.168.25.11 namenode" >> /etc/hosts
+echo "192.168.25.11 namenode-1" >> /etc/hosts
 
-echo "192.168.1.12 resourcemanager" >> /etc/hosts
-echo "192.168.1.12 resourcemanager-1" >> /etc/hosts
+echo "192.168.25.12 resourcemanager" >> /etc/hosts
+echo "192.168.25.12 resourcemanager-1" >> /etc/hosts
 
-echo "192.168.1.13 historyserver" >> /etc/hosts
-echo "192.168.1.13 historyserver-1" >> /etc/hosts
+echo "192.168.25.13 historyserver" >> /etc/hosts
+echo "192.168.25.13 historyserver-1" >> /etc/hosts
 
-echo "192.168.1.21 datanode1" >> /etc/hosts
-echo "192.168.1.21 datanode1-1" >> /etc/hosts
-echo "192.168.1.21 datanode-1" >> /etc/hosts
+echo "192.168.25.21 datanode1" >> /etc/hosts
+echo "192.168.25.21 datanode1-1" >> /etc/hosts
+echo "192.168.25.21 datanode-1" >> /etc/hosts
 
-echo "192.168.1.22 datanode2" >> /etc/hosts
-echo "192.168.1.22 datanode-2" >> /etc/hosts
-echo "192.168.1.22 datanode2-1" >> /etc/hosts
+echo "192.168.25.22 datanode2" >> /etc/hosts
+echo "192.168.25.22 datanode-2" >> /etc/hosts
+echo "192.168.25.22 datanode2-1" >> /etc/hosts
 
-echo "192.168.1.23 datanode3" >> /etc/hosts
-echo "192.168.1.23 datanode3-1" >> /etc/hosts
-echo "192.168.1.23 datanode-3" >> etc/hosts
+echo "192.168.25.23 datanode3" >> /etc/hosts
+echo "192.168.25.23 datanode3-1" >> /etc/hosts
+echo "192.168.25.23 datanode-3" >> etc/hosts
 
 
 sed -i '/127.0.1.1/d' /etc/hosts
