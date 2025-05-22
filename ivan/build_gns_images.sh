@@ -1,14 +1,34 @@
 #!/bin/sh
 
-sudo ./base/build_base.sh
+cd ./base
 
 wait
 
-sudo ./measurements_base/build_measurements.sh
+sudo ./build_base.sh
 
 wait
 
-sudo ./environment_setup/build_hadoop_env.sh
+cd ..
+
+wait
+
+cd ./measurements_base
+
+wait
+
+sudo ./build_measurements.sh
+
+wait
+
+cd ..
+
+wait
+
+cd ./environment_setup
+
+wait
+
+sudo ./build_hadoop_env.sh
 
 wait
 
