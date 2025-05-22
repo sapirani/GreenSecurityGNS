@@ -32,6 +32,10 @@ sudo ./build_hadoop_env.sh
 
 wait
 
+cd ..
+
+wait
+
 cd ./resourcemanager
 
 wait
