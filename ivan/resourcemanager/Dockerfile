@@ -13,10 +13,10 @@ COPY reducer.py /home
 COPY slow_reducer.py /home
 
 WORKDIR /home
-COPY run_task_with_2_workers.sh .
+COPY run_task_with_scanner.sh .
 COPY run_task_without_scanner.sh .
 COPY send_trigger.sh .
-RUN chmod +x run_task_with_2_workers.sh
+RUN chmod +x run_task_with_scanner.sh
 RUN chmod +x run_task_without_scanner.sh
 RUN chmod +x send_trigger.sh
 WORKDIR /green_security_measurements/Scanner

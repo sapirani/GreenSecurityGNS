@@ -5,6 +5,8 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
+/home/send_trigger.sh start_measurement $1
+
 
 hadoop jar /opt/hadoop-3.4.1/share/hadoop/tools/lib/hadoop-streaming-*.jar -D mapreduce.job.reduces=$1 -D mapreduce.job.maps=$1 \
 -input hdfs://namenode:9000/input \
@@ -13,3 +15,5 @@ hadoop jar /opt/hadoop-3.4.1/share/hadoop/tools/lib/hadoop-streaming-*.jar -D ma
 -reducer /home/reducer.py \
 -file /home/mapper.py \
 -file /home/reducer.py
+
+/home/send_trigger.sh stop_measurement $1
