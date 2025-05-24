@@ -1,7 +1,7 @@
 from general_consts import *
 
 # ======= Scanner Parameters =======
-main_program_to_scan = ProgramToScan.NO_SCAN #ProgramToScan.PythonServer
+main_program_to_scan = ProgramToScan.NO_SCAN
 background_programs_types = []  #[ProgramToScan.DummyANTIVIRUS, ProgramToScan.Perfmon]
 
 kill_background_process_when_main_finished = True
@@ -18,11 +18,6 @@ antivirus_type = AntivirusType.DEFENDER
 file_type = "pdf"
 directory_type = "Duplicated Files"
 custom_scan_path = r'""'
-#custom_scan_path = r'"C:\Users\sagib\Downloads"'
-# custom_scan_path = r'"C:\Users\sagib\OneDrive\Desktop\sample files\original samples"'
-#custom_scan_path = r'"C:\Users\Administrator\Downloads"'
-#custom_scan_path = fr'"C:\Users\Administrator\Desktop\GreenSecurity-FirstExperiment"'
-#custom_scan_path = fr'"C:\Users\Administrator\Documents\GitHub\GreenSecurity-FirstExperiment\Data{directory_type}\{file_type}"'  # relevant only for custom scans. On other types, must be empty
 
 RUNNING_TIME = 100 * MINUTE # insert time (e.g. 0.5 * MINUTE) or None in case you want to wait until process ends in ONE_SCAN mode
 
@@ -40,6 +35,11 @@ DEFAULT_SCREEN_TURNS_OFF_TIME = 4
 DEFAULT_TIME_BEFORE_SLEEP_MODE = 4
 
 is_inside_container = True
+
+# ==== Elastic logging configuration
+elastic_url = "http://192.168.140.101:9200"
+elastic_username = "elastic"
+elastic_password = "71BPiEiQ"
 
 # ==== ClamAV configurations
 recursive = True
@@ -65,3 +65,6 @@ cpu_percent_to_consume = 20
 # For MEMORY CONSUMER program
 memory_chunk_size = 1 * MB
 consumption_speed = 10 * MB / SECOND
+
+# For Network Sender
+time_interval = 0.2
