@@ -12,15 +12,15 @@ https://github.com/sapirani/GreenSecurityMeasurementAndOptimizationFramework
 Download the entire ivan directory.
 Make sure to add execution premissions to that directory by running the command:
 
-'chmod -R +x "path_to_ivan_dir"'
+`chmod -R +x "path_to_ivan_dir"`
 
 ### Build GNS images
 Enter the ivan directory and run the command:
 
-'sudo ./build_gns_images.sh'
+`sudo ./build_gns_images.sh`
 
 ### Configure the GNS GUI
-First, Open the terminal and run: 'sudo -E gns3'.
+First, Open the terminal and run: `sudo -E gns3`.
 
 - If you run the gns with local server - you don't need to configure anything special.
 - If you run the gns with server that runs on a virtual machine (mainly in windows) - you need to configure the server in the gns Gui.
@@ -41,21 +41,28 @@ Next, you can select all the connected containers and click on the green arrow t
 ### Run the parallel task
 First, enter the namenode container.
 You can choose the size of the parallel task by changing the file "generate_random_words.py".
+
 Execute the file using the command `python3 generate_random_words.py`.
 Notice that this file can receive 3 parameters: number_of_words, len_of_word, file_name. If you send all 3 - you don't need to change the file manually.
 Then, run the command:
 
 `hadoop fs -mkdir /input`
+
 and then 
 
 `hadoop fs -put <file of random words> /input`
+
 After finishing to define the parallel task, exit the namenode container.
 Now, enter the resourcemanager node.
 Run the command 
 
-`/home/run_task_with_scanner.sh n` or the command 
+`/home/run_task_with_scanner.sh n` 
 
-`/home/run_task_without_scanner.sh n` - based on whether we want to run the scanner code during the parallel task.
+or the command 
+
+`/home/run_task_without_scanner.sh n` 
+
+based on whether we want to run the scanner code during the parallel task.
 The parameter n represents the number of additional datanodes that are connected to the network.
 
 ### Collect results
