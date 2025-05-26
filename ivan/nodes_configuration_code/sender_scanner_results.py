@@ -1,14 +1,36 @@
 import os
+import subprocess
 import sys
 import zipfile
 from typing import List
-
-from ivan.nodes_configuration_code.find_volumes import find_recent_volume_dirs, find_scanner_volume_dirs
 
 RESULTS_DIR_PREFIX = "results_"
 OUTPUT_ZIP_NAME = "./all_results.zip"
 
 MAIN_CONTAINERS = ["resourcemanager-1", "namenode-1", "historyserver-1"]
+
+SCANNER_DIRECTORY = "Scanner"
+VOLUME_INITIAL_DIRECTORY = r""
+VOLUME_MAIN_DIRECTORY = VOLUME_INITIAL_DIRECTORY + r"/green_security_measurements"
+VOLUME_TYPE = "volume"
+COMMAND_FORMAT = f"""'{{{{range.Mounts}}}}{{{{if and (eq .Type "{VOLUME_TYPE}") (eq .Destination "{VOLUME_MAIN_DIRECTORY}")}}}}{{{{.Source}}}}{{{{"\\n"}}}}{{{{end}}}}{{{{end}}}}'"""
+
+
+def run_command_in_dir(command: str) -> List[str]:
+    result = subprocess.run(command, shell=True, capture_output=True, text=True)
+    output = result.stdout.strip().split("\n")
+    if result.returncode != 0 or not output:
+        raise RuntimeError(f"Failed to run command: {result.stderr}")
+    return output
+
+
+def find_recent_volume_dirs(count: int) -> List[str]:
+    command = f"""docker ps -a -q | head -n {count} | xargs docker inspect --format {COMMAND_FORMAT}"""
+    volume_dirs = run_command_in_dir(command)
+    return volume_dirs
+
+def find_scanner_volume_dirs(volume_dirs: List[str]) -> List[str]:
+    return [os.path.join(vol_dir, SCANNER_DIRECTORY) for vol_dir in volume_dirs if vol_dir != ""]
 
 
 def find_results_dirs(volume_dirs: List[str], number_of_results_dirs: int) -> List[str]:
