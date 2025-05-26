@@ -11,6 +11,7 @@ https://github.com/sapirani/GreenSecurityMeasurementAndOptimizationFramework
 ### Configure the main working directory
 Download the entire ivan directory.
 Make sure to add execution premissions to that directory by running the command:
+
 'chmod -R +x "path_to_ivan_dir"'
 
 ### Build GNS images
@@ -43,17 +44,28 @@ You can choose the size of the parallel task by changing the file "generate_rand
 Execute the file using the command `python3 generate_random_words.py`.
 Notice that this file can receive 3 parameters: number_of_words, len_of_word, file_name. If you send all 3 - you don't need to change the file manually.
 Then, run the command:
+
 `hadoop fs -mkdir /input`
-and then `hadoop fs -put <file of random words> /input`
+and then 
+
+`hadoop fs -put <file of random words> /input`
 After finishing to define the parallel task, exit the namenode container.
 Now, enter the resourcemanager node.
-Run the command `/home/run_task_with_scanner.sh n` or the command `/home/run_task_without_scanner.sh n` - based on whether we want to run the scanner code during the parallel task.
+Run the command 
+
+`/home/run_task_with_scanner.sh n` or the command 
+
+`/home/run_task_without_scanner.sh n` - based on whether we want to run the scanner code during the parallel task.
 The parameter n represents the number of additional datanodes that are connected to the network.
 
 ### Collect results
 After the task is done, you can go back to the terminal and enter the ivan folder. 
-Now you can run: `sudo python3 ./nodes_configuration_code/sender_scanner_results.py n` where n is the number of **total** containers that are part of the network.
+Now you can run: 
+
+`sudo python3 ./nodes_configuration_code/sender_scanner_results.py n` where n is the number of **total** containers that are part of the network.
 
 ### Change scanner parameters
 You can change the parameters of all the connected containers automaticaly by changing the program_parameters_template.py file inside the nodes_configuration_code directory.
-Then, run the command: `sudo python3 ./nodes_configuration_code/update_volumes.py n` where n is the number of **total** containers that are part of the network.
+Then, run the command: 
+
+`sudo python3 ./nodes_configuration_code/update_volumes.py n` where n is the number of **total** containers that are part of the network.
