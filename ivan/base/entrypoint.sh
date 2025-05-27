@@ -155,4 +155,6 @@ do
     wait_for_it ${i}
 done
 
+wait 30
+
 exec $@
