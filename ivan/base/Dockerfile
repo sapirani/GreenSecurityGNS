@@ -61,4 +61,6 @@ RUN apt-get install -y dmidecode
 RUN apt-get install -y python3-dev libjpeg-dev zlib1g-dev
 RUN apt update && apt install -y build-essential
 
+COPY network_config.txt /etc/network/interfaces
+
 ENTRYPOINT ["/entrypoint.sh"]

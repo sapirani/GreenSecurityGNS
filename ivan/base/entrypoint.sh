@@ -19,8 +19,7 @@ echo "192.168.25.22 datanode2-1" >> /etc/hosts
 
 echo "192.168.25.23 datanode3" >> /etc/hosts
 echo "192.168.25.23 datanode3-1" >> /etc/hosts
-echo "192.168.25.23 datanode-3" >> etc/hosts
-
+echo "192.168.25.23 datanode-3" >> /etc/hosts
 
 sed -i '/127.0.1.1/d' /etc/hosts
 
