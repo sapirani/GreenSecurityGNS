@@ -104,7 +104,7 @@ The scanner program writes logs into local elastic database.
 In order for it to succeed, we should configure containers of elastic that will run localy on the server.
 1. go into the local elastic directory using the command: `cd /home/gns3/elastic-start-local`
 2. execute `docker compose down` to shut down existing containers (if something is wrong with the previous ones)
-3. In the file `docker-compose` change the ip address from 127.0.0.1 to be 0.0.0.0.
+3. In the file `docker-compose` file change the ip addresses from 127.0.0.1 to be 0.0.0.0.
 4. execute `docker compose up --build --wait` to turn on the containers.
 5. Run the command `docker ps` and make sure that 2 new containers with elastic in their name exist.
    * `docker.elastic.co/kibana/kibana:9.0.1` on port 5601
