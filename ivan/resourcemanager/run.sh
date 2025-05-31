@@ -1,7 +1,5 @@
 #!/bin/bash
 
-ip addr add 192.168.25.12/24 dev eth0
-
 #TODO: add health check and use depends in the docker compose
 
 sleep 40

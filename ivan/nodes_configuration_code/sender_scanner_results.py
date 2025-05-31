@@ -65,7 +65,7 @@ def zip_directories(directories: List[str], output_path: str) -> None:
 
 
 def print_given_containers(results_dirs: List[str], num_of_containers: int) -> None:
-    available_datanodes = [f"datanode{idx + 1}-1" for idx in range(num_of_containers - len(MAIN_CONTAINERS))]
+    available_datanodes = [f"datanode-{idx + 1}" for idx in range(num_of_containers - len(MAIN_CONTAINERS))]
     expected_containers = MAIN_CONTAINERS + available_datanodes
 
     found_containers = extract_container_names(results_dirs)
