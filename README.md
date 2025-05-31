@@ -19,6 +19,8 @@ Enter the ivan directory and run the command:
 
 `sudo ./build_gns_images.sh`
 
+-> Notice: if you pass the files from windows to the linux, you must run the command: `sed -i -e 's/\r$//' ./build_gns_images.sh` before building the images.
+
 ### Configure the GNS GUI
 First, Open the terminal and run: `sudo -E gns3`.
 Next, the GUI will open a screen. 
