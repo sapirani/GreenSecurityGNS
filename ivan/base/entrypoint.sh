@@ -23,6 +23,9 @@ echo "192.168.25.23 datanode-3" >> /etc/hosts
 
 sed -i '/127.0.1.1/d' /etc/hosts
 
+# Update dhcp to generate dynamic ip address
+dhclient
+
 # Set some sensible defaults
 export CORE_CONF_fs_defaultFS=${CORE_CONF_fs_defaultFS:-hdfs://`hostname -f`:8020}
 
