@@ -49,6 +49,12 @@ Connect them using a "Ethernet switch".
 If needed, you can connect to the switch a NAT component (to access nodes outside of the network - e.g. the web). If you add a NAT, remember to configure a **real** ip address using DHCP (you can configure it manually on the container itself before turning on the containers).
 Next, you can select all the connected containers and click on the green arrow to start all the components.
 
+#### Important Note
+Do not add more than one continer for resourcemanager, namenode, historyserver.
+The reason is that gns adds a trailing number to the image name. The names resourcemanager-1, namenode-1, and historyserver are hard-coded in this framework.
+Adding another container for each type is currently not supported.
+It is ok to have multiple containers of datanodes.
+
 ### Run the parallel task
 First, enter the namenode container.
 You can choose the size of the parallel task by changing the file "generate_random_words.py".
