@@ -16,7 +16,7 @@ Make sure to add execution premissions to that directory by running the command:
 
 -> _Notice_: if you pass the files from windows to the linux, you must run the command (before building the images):
 
-    `sed -i -e 's/\r$//' ./build_gns_images.sh` 
+`sed -i -e 's/\r$//' ./build_gns_images.sh` 
 
 
 ### Build GNS images
