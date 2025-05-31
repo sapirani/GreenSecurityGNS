@@ -14,11 +14,10 @@ Make sure to add execution premissions to that directory by running the command:
 
 `chmod -R +x "path_to_ivan_dir"`
 
--> _Notice_: if you pass the files from windows to the linux, you must run the command:
+-> _Notice_: if you pass the files from windows to the linux, you must run the command (before building the images):
 
     `sed -i -e 's/\r$//' ./build_gns_images.sh` 
-  
-      before building the images.
+
 
 ### Build GNS images
 Enter the ivan directory and run the command:
