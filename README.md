@@ -53,7 +53,7 @@ Next, you can select all the connected containers and click on the green arrow t
 Do not add more than one continer for resourcemanager, namenode, historyserver.
 The reason is that gns adds a trailing number to the image name. The names resourcemanager-1, namenode-1, and historyserver are hard-coded in this framework.
 Adding another container for each type is currently not supported.
-It is ok to have multiple containers of datanodes.
+It is ok to have multiple containers of datanodes. The valid names are datanode-1, datanode-2, datanode-3, etc.
 
 ### Run the parallel task
 First, enter the namenode container.
@@ -126,3 +126,33 @@ In order for it to succeed, we should configure containers of elastic that will 
    * Password: saved in .env file in the elastic directory (from step 1)
 8. Go to the burger sign in the top left of the site and clicke on Discover.
 9. In the DataView tab click on `scanner` to view the logs collected by running the scanner.
+
+## For Developers
+
+### Support DNS resolutions of nodes hostname
+The NAT cloud in GNS serves as DHCP server and DNS server.
+We use dhclient as a DHCP client.
+
+dhclient requests an ip from the NAT cloud, and also announces the node's hostname (as configured in /etc/dhcp/dhclient.conf).
+That hostname is translated to the ip in the NAT cloud, and that's how other nodes receive the ip.
+
+by default, when resolving a domain name, the nodes request to translate both to IPV4 (A request) and IPV6 (AAAA request). The NAT cloud probably does not support IPV6.
+This situation causes failures in IPV6 translations and a lot of time wasted on retries (evem though IPV4 succeeds right away).
+Hence, we disbale IPV6 requests in the /etc/resolve.conf file using the no-aaaa option.
+Since dhclient restarts the /etc/resolve.conf in every request (hence, out no-aaaa option is being deleted), a hook for that restart function was created in such a way that the new function does nothing.
+The hook is an executable file (/etc/dhcp/dhclient-enter-hooks.d/noupdate-resolv) that overrides the function `make_resolv_conf` of dhclient, and basically does nothing.
+
+This logic resides inside the `entrypoint.sh` file.
+
+In case we want that the DNS will be translated without trailing additions by GNS (put it in the entrypoint):
+
+```
+#cut out the -<number> suffix from hostname
+HOSTNAME_FULL=$(hostname)
+HOSTNAME_PREFIX="${HOSTNAME_FULL%%-*}"
+
+# write the HOSTNAME_PREFIX instead of the gethostname() in /etc/dhcp/dhclient.conf
+SOURCE_FILE=/etc/dhcp/dhclient.conf
+sed -i "s/gethostname()/\"$HOSTNAME_PREFIX\"/g" "$SOURCE_FILE"
+```
+
