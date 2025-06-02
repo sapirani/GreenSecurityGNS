@@ -144,7 +144,7 @@ The hook is an executable file (/etc/dhcp/dhclient-enter-hooks.d/noupdate-resolv
 
 This logic resides inside the `entrypoint.sh` file.
 
-In case we want that the DNS will be translated without trailing additions by GNS (put it in the entrypoint):
+In case we want that the DNS will be translated without trailing additions by GNS (e.g., "namenode" instead of "namenode-1", "resourcemanager" instead of "resourcemanager-1" and so on),  put it in the entrypoint:
 
 ```
 #cut out the -<number> suffix from hostname
