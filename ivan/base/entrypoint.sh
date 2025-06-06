@@ -1,30 +1,25 @@
 #!/bin/bash
 
-echo "192.168.25.11 namenode" >> /etc/hosts
-echo "192.168.25.11 namenode-1" >> /etc/hosts
-
-echo "192.168.25.12 resourcemanager" >> /etc/hosts
-echo "192.168.25.12 resourcemanager-1" >> /etc/hosts
-
-echo "192.168.25.13 historyserver" >> /etc/hosts
-echo "192.168.25.13 historyserver-1" >> /etc/hosts
-
-echo "192.168.25.21 datanode1" >> /etc/hosts
-echo "192.168.25.21 datanode1-1" >> /etc/hosts
-echo "192.168.25.21 datanode-1" >> /etc/hosts
-
-echo "192.168.25.22 datanode2" >> /etc/hosts
-echo "192.168.25.22 datanode-2" >> /etc/hosts
-echo "192.168.25.22 datanode2-1" >> /etc/hosts
-
-echo "192.168.25.23 datanode3" >> /etc/hosts
-echo "192.168.25.23 datanode3-1" >> /etc/hosts
-echo "192.168.25.23 datanode-3" >> /etc/hosts
-
 sed -i '/127.0.1.1/d' /etc/hosts
 
 # Update dhcp to generate dynamic ip address
 dhclient
+
+# avoid the restart of resolve.conf by the dhclient - make sure you run dhclient once beforehand
+cat << 'EOF' > /etc/dhcp/dhclient-enter-hooks.d/noupdate-resolv
+#!/bin/sh
+# Prevent dhclient from modifying /etc/resolv.conf
+
+make_resolv_conf() {
+    echo "Skipping resolv.conf update by dhclient"
+}
+EOF
+
+chmod +x /etc/dhcp/dhclient-enter-hooks.d/noupdate-resolv
+
+# avoid IPV6 queries in DNS (because it takes so much time and eventually fails)
+echo "options no-aaaa" >> /etc/resolv.conf
+
 
 # Set some sensible defaults
 export CORE_CONF_fs_defaultFS=${CORE_CONF_fs_defaultFS:-hdfs://`hostname -f`:8020}

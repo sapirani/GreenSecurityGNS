@@ -1,8 +1,5 @@
 #!/bin/bash
 
-ip addr add "192.168.25.2${DATANODE_NUMBER}/24" dev eth0
-
-
 datadir=`echo $HDFS_CONF_dfs_datanode_data_dir | perl -pe 's#file://##'`
 if [ ! -d $datadir ]; then
   echo "Datanode data directory not found: $datadir"
