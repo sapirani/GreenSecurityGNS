@@ -7,7 +7,7 @@ class DockerCPUConsts:
     PRECPU_USAGE = "precpu_usage"
 
 
-def calculate_cpu_percent(stat) -> float:
+def calculate_cpu_percent(stat: dict) -> float:
     cpu_total_usage = stat[DockerCPUConsts.CPU_STATS][DockerCPUConsts.CPU_USAGE][DockerCPUConsts.TOTAL_USAGE]
     precpu_total_usage = stat[DockerCPUConsts.PRECPU_STATS][DockerCPUConsts.CPU_USAGE][DockerCPUConsts.TOTAL_USAGE]
     cpu_delta = cpu_total_usage - precpu_total_usage

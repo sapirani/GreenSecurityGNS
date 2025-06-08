@@ -4,7 +4,7 @@ class DockerMemoryConsts:
     MAX_USAGE = "max_usage"
     LIMIT = "limit"
 
-def get_memory_usage(stat) -> tuple[float, float]:
+def get_memory_usage(stat: dict) -> tuple[float, float]:
     """
     Returns a dictionary with current memory usage, max usage, and memory limit in bytes.
     """
