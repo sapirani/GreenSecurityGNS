@@ -12,7 +12,7 @@ Usage: $0 [datanodes] [measurement_session_id] [mappers] [reducers] [OPTIONS]
 
 Positional arguments:
   datanodes                    Number of datanodes (default: 3)
-  measurement_session_id       Optional session ID
+  measurement_session_id       Optional session ID (default: random human-readable ID)
   mappers                      Number of mappers (default: datanodes)
   reducers                     Number of reducers (default: datanodes)
 
