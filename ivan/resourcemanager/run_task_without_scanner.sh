@@ -1,53 +1,29 @@
-#!/bin/sh
+#!/bin/bash
 
 # Defaults
-datanodes=3
 mappers=""
 reducers=""
 
 print_help() {
   cat <<EOF
-Usage: $0 [datanodes] [OPTIONS]
+Usage: $0 [mappers] [reducers] [OPTIONS]
 
-Positional:
-  datanodes              Number of datanodes (default: 3)
+Positional arguments:
+  mappers                 Number of mappers (default: 3)
+  reducers                Number of reducers (default: 3)
 
 Options:
-  -d, --datanodes N         Number of datanodes
-  -p, --mappers N           Number of mappers (default: datanodes)
-  -r, --reducers N          Number of reducers (default: datanodes)
-  -h, --help                Show this help
+  -m, --mappers N         Number of mappers
+  -r, --reducers N        Number of reducers
+  -h, --help              Show this help message
 EOF
 }
 
-# Parse positional args first: datanodes
-positional_args=()
+# Collect positional args
+pos_args=()
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    -d|--datanodes|--datanodes=*|-p|--mappers|--mappers=*|-r|--reducers|--reducers=*|-h|--help)
-      break
-      ;;
-    *)
-      positional_args+=("$1")
-      shift
-      ;;
-  esac
-done
-
-[ -n "${positional_args[0]}" ] && datanodes="${positional_args[0]}"
-
-# Parse options
-while [ "$#" -gt 0 ]; do
-  case "$1" in
-    -d|--datanodes)
-      datanodes="$2"
-      shift 2
-      ;;
-    --datanodes=*)
-      datanodes="${1#*=}"
-      shift
-      ;;
-    -p|--mappers)
+    -m|--mappers)
       mappers="$2"
       shift 2
       ;;
@@ -67,27 +43,39 @@ while [ "$#" -gt 0 ]; do
       print_help
       exit 0
       ;;
-    *)
+    -*)
       echo "Unknown option: $1"
       print_help
       exit 1
       ;;
+    *)
+      pos_args+=("$1")
+      shift
+      ;;
   esac
 done
 
+# Apply positional values
+[ -z "$mappers" ]  && [ -n "${pos_args[0]}" ] && mappers="${pos_args[0]}"
+[ -z "$reducers" ] && [ -n "${pos_args[1]}" ] && reducers="${pos_args[1]}"
+
+# Set defaults if still unset
+[ -z "$mappers" ] && mappers=3
+[ -z "$reducers" ] && reducers=3
+
 # Validate numeric input
-for val in "$datanodes" "$mappers" "$reducers"; do
-  if [ -n "$val" ] && ! echo "$val" | grep -Eq '^[0-9]+$'; then
-    echo "Error: datanodes, mappers, and reducers must be positive integers"
+for val in "$mappers" "$reducers"; do
+  if ! echo "$val" | grep -Eq '^[0-9]+$'; then
+    echo "Error: mappers and reducers must be positive integers"
     exit 1
   fi
 done
 
-# Set defaults for mappers and reducers if empty
-[ -z "$mappers" ] && mappers="$datanodes"
-[ -z "$reducers" ] && reducers="$datanodes"
+echo "Running Hadoop job with:"
+echo "  Mappers:  $mappers"
+echo "  Reducers: $reducers"
 
-# Run Hadoop streaming job
+# Run Hadoop job
 hadoop jar /opt/hadoop-3.4.1/share/hadoop/tools/lib/hadoop-streaming-*.jar \
   -D mapreduce.job.maps="$mappers" \
   -D mapreduce.job.reduces="$reducers" \

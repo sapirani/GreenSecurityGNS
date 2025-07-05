@@ -1,44 +1,49 @@
-#!/bin/sh
+#!/bin/bash
 
 # Defaults
-datanodes=3
+datanodes=""
 measurement_session_id=""
 mappers=""
 reducers=""
 
 print_help() {
   cat <<EOF
-Usage: $0 [datanodes] [measurement_session_id] [OPTIONS]
+Usage: $0 [datanodes] [measurement_session_id] [mappers] [reducers] [OPTIONS]
 
-Positional:
-  datanodes              Number of datanodes (default: 3)
-  measurement_session_id Optional session ID
+Positional arguments:
+  datanodes                    Number of datanodes (default: 3)
+  measurement_session_id       Optional session ID
+  mappers                      Number of mappers (default: datanodes)
+  reducers                     Number of reducers (default: datanodes)
 
 Options:
-  -d, --datanodes N         Number of datanodes
+  -d, --datanodes N            Number of datanodes
   -s, --measurement_session_id ID  Measurement session ID
-  -p, --mappers N           Number of mappers
-  -r, --reducers N          Number of reducers
-  -h, --help                Show this help
+  -m, --mappers N              Number of mappers
+  -r, --reducers N             Number of reducers
+  -h, --help                   Show this help message
 EOF
 }
 
-# Parse positional args first: datanodes, measurement_session_id
-positional_args=()
+# Parse positional arguments first
+pos_args=()
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    -d|--datanodes|--datanodes=*|-s|--measurement_session_id|--measurement_session_id=*|-p|--mappers|--mappers=*|-r|--reducers|--reducers=*|-h|--help)
+    -d|--datanodes|--datanodes=*|-s|--measurement_session_id|--measurement_session_id=*|-m|--mappers|--mappers=*|-r|--reducers|--reducers=*|-h|--help)
       break
       ;;
     *)
-      positional_args+=("$1")
+      pos_args+=("$1")
       shift
       ;;
   esac
 done
 
-[ -n "${positional_args[0]}" ] && datanodes="${positional_args[0]}"
-[ -n "${positional_args[1]}" ] && measurement_session_id="${positional_args[1]}"
+# Assign positional args
+[ -n "${pos_args[0]}" ] && datanodes="${pos_args[0]}"
+[ -n "${pos_args[1]}" ] && measurement_session_id="${pos_args[1]}"
+[ -n "${pos_args[2]}" ] && mappers="${pos_args[2]}"
+[ -n "${pos_args[3]}" ] && reducers="${pos_args[3]}"
 
 # Parse options
 while [ "$#" -gt 0 ]; do
@@ -59,7 +64,7 @@ while [ "$#" -gt 0 ]; do
       measurement_session_id="${1#*=}"
       shift
       ;;
-    -p|--mappers)
+    -m|--mappers)
       mappers="$2"
       shift 2
       ;;
@@ -87,23 +92,27 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-# Validate numbers
+# Set defaults
+[ -z "$datanodes" ] && datanodes=3
+[ -z "$mappers" ] && mappers="$datanodes"
+[ -z "$reducers" ] && reducers="$datanodes"
+
+# Validate
 for val in "$datanodes" "$mappers" "$reducers"; do
-  if [ -n "$val" ] && ! echo "$val" | grep -Eq '^[0-9]+$'; then
+  if ! [[ "$val" =~ ^[0-9]+$ ]]; then
     echo "Error: datanodes, mappers, and reducers must be positive integers"
     exit 1
   fi
 done
 
-# Defaults for mappers and reducers
-[ -z "$mappers" ] && mappers="$datanodes"
-[ -z "$reducers" ] && reducers="$datanodes"
+echo "Selected number of datanodes:" $datanodes
+echo "Selected number of mappers:" $mappers
+echo "Selected number of reducers:" $reducers
 
-# Start measurement
-/home/send_trigger.sh start_measurement "$datanodes" "$measurement_session_id" \
-  --mappers="$mappers" --reducers="$reducers"
+# === Trigger START measurement ===
+/home/send_trigger.sh start_measurement "$datanodes" "$measurement_session_id"
 
-# Run Hadoop streaming job
+# === Run Hadoop Streaming ===
 hadoop jar /opt/hadoop-3.4.1/share/hadoop/tools/lib/hadoop-streaming-*.jar \
   -D mapreduce.job.maps="$mappers" \
   -D mapreduce.job.reduces="$reducers" \
@@ -114,6 +123,5 @@ hadoop jar /opt/hadoop-3.4.1/share/hadoop/tools/lib/hadoop-streaming-*.jar \
   -file /home/mapper.py \
   -file /home/reducer.py
 
-# Stop measurement
-/home/send_trigger.sh stop_measurement "$datanodes" "$measurement_session_id" \
-  --mappers="$mappers" --reducers="$reducers"
+# === Trigger STOP measurement ===
+/home/send_trigger.sh stop_measurement "$datanodes" "$measurement_session_id"
