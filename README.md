@@ -83,17 +83,20 @@ based on whether we want to run the scanner code during the parallel task.
 The parameter n represents the number of additional datanodes that are connected to the network.
 
 #### Available flags for `/home/run_task_with_scanner.sh`
+<pre>
  1. -d, --datanodes                    Number of datanodes (default: 3)
  2. -i, --measurement_session_id       Optional session ID (default: random human-readable ID)
  3. -m, --mappers                      Number of mappers (default: datanodes)
  4. -r, --reducers                     Number of reducers (default: datanodes)
  5. -h, --help                         Show help message
+</pre>
 
 #### Available flags for `/home/run_task_without_scanner.sh`
+<pre>
 1.  -m, --mappers                      Number of mappers (default: 3)
 2.  -r, --reducers                     Number of reducers (default: 3)
 3.  -h, --help                         Shows help message
-
+</pre>
    
 Note: you may send parameters by order without mentioning the name of the flag (for example, without writing -d or --datanodes).
 You may choose a subset of flags, and the others will receive the default value.
