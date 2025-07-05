@@ -73,14 +73,30 @@ After finishing to define the parallel task, exit the namenode container.
 Now, enter the resourcemanager node.
 Run the command 
 
-`/home/run_task_with_scanner.sh n` 
+`/home/run_task_with_scanner.sh` 
 
 or the command 
 
-`/home/run_task_without_scanner.sh n` 
+`/home/run_task_without_scanner.sh` 
 
 based on whether we want to run the scanner code during the parallel task.
 The parameter n represents the number of additional datanodes that are connected to the network.
+
+#### Available flags for `/home/run_task_with_scanner.sh`
+ 1. -d, --datanodes                    Number of datanodes (default: 3)
+ 2. -i, --measurement_session_id       Optional session ID (default: random human-readable ID)
+ 3. -m, --mappers                      Number of mappers (default: datanodes)
+ 4. -r, --reducers                     Number of reducers (default: datanodes)
+ 5. -h, --help                         Show help message
+
+#### Available flags for `/home/run_task_without_scanner.sh`
+1.  -m, --mappers                      Number of mappers (default: 3)
+2.  -r, --reducers                     Number of reducers (default: 3)
+3.  -h, --help                         Shows help message
+
+   
+Note: you may send parameters by order without mentioning the name of the flag (for example, without writing -d or --datanodes).
+You may choose a subset of flags, and the others will receive the default value.
 
 ### Collect results
 After the task is done, you can go back to the terminal and enter the ivan folder. 
