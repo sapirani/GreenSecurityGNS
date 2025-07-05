@@ -17,7 +17,7 @@ Positional arguments:
 
 Options:
   -d, --datanodes N            Number of datanodes
-  -s, --measurement_session_id ID  Measurement session ID
+  -i, --measurement_session_id ID  Measurement session ID
   -h, --help                   Show this help
 EOF
 }
@@ -50,7 +50,7 @@ while [ "$#" -gt 0 ]; do
       datanodes="$2"; shift 2 ;;
     --datanodes=*)
       datanodes="${1#*=}"; shift ;;
-    -s|--measurement_session_id)
+    -i|--measurement_session_id)
       measurement_session_id="$2"; shift 2 ;;
     --measurement_session_id=*)
       measurement_session_id="${1#*=}"; shift ;;

@@ -18,7 +18,7 @@ Positional arguments:
 
 Options:
   -d, --datanodes N            Number of datanodes
-  -s, --measurement_session_id ID  Measurement session ID
+  -i, --measurement_session_id ID  Measurement session ID
   -m, --mappers N              Number of mappers
   -r, --reducers N             Number of reducers
   -h, --help                   Show this help message
@@ -29,7 +29,7 @@ EOF
 pos_args=()
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    -d|--datanodes|--datanodes=*|-s|--measurement_session_id|--measurement_session_id=*|-m|--mappers|--mappers=*|-r|--reducers|--reducers=*|-h|--help)
+    -d|--datanodes|--datanodes=*|-i|--measurement_session_id|--measurement_session_id=*|-m|--mappers|--mappers=*|-r|--reducers|--reducers=*|-h|--help)
       break
       ;;
     *)
@@ -56,7 +56,7 @@ while [ "$#" -gt 0 ]; do
       datanodes="${1#*=}"
       shift
       ;;
-    -s|--measurement_session_id)
+    -i|--measurement_session_id)
       measurement_session_id="$2"
       shift 2
       ;;
