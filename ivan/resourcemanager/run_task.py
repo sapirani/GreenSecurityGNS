@@ -76,13 +76,7 @@ def parse_size(value: str) -> int:
 
 def run_distributed_task(arguments):
     job_str = f"""
-hadoop jar /opt/hadoop-3.4.1/share/hadoop/tools/lib/hadoop-streaming-*.jar
-  -input hdfs://namenode-1:9000{arguments.input_path}
-  -output hdfs://namenode-1:9000{arguments.output_path}
-  -mapper {arguments.mapper_path}
-  -reducer {arguments.reducer_path}
-  -file {arguments.mapper_path}
-  -file {arguments.reducer_path}
+hadoop jar /opt/hadoop-3.4.1/share/hadoop/tools/lib/hadoop-streaming-3.4.1.jar
   -D mapreduce.job.maps={arguments.mappers}
   -D mapreduce.job.reduces={arguments.reducers}
   -D mapreduce.map.memory.mb={arguments.map_memory}
@@ -100,6 +94,13 @@ hadoop jar /opt/hadoop-3.4.1/share/hadoop/tools/lib/hadoop-streaming-*.jar
   -D mapreduce.reduce.shuffle.parallelcopies={arguments.shuffle_copies}
   -D mapreduce.job.jvm.numtasks={arguments.jvm_numtasks}
   -D mapreduce.job.reduce.slowstart.completedmaps={arguments.slowstart_completed_maps}
+  
+  -input hdfs://namenode-1:9000{arguments.input_path}
+  -output hdfs://namenode-1:9000{arguments.output_path}
+  -mapper {arguments.mapper_path}
+  -reducer {arguments.reducer_path}
+  -file {arguments.mapper_path}
+  -file {arguments.reducer_path}
 """
 
     # Clean the command string: strip, replace newlines and multiple spaces with one space
