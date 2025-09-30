@@ -1,5 +1,7 @@
 import argparse
 import re
+import shlex
+import subprocess
 from enum import Enum
 
 
@@ -100,10 +102,14 @@ hadoop jar /opt/hadoop-3.4.1/share/hadoop/tools/lib/hadoop-streaming-*.jar
   -D mapreduce.job.reduce.slowstart.completedmaps={arguments.slowstart_completed_maps}
 """
 
-    print(job_str)
+    # Clean the command string: strip, replace newlines and multiple spaces with one space
+    cleaned_cmd = re.sub(r'\s+', ' ', job_str.strip())
 
+    # Split command into list safely
+    hadoop_job_args = shlex.split(cleaned_cmd)
 
-# TODO: subprocess.run ...
+    # Run subprocess
+    subprocess.run(hadoop_job_args, check=True)
 
 
 if __name__ == '__main__':
@@ -137,7 +143,7 @@ if __name__ == '__main__':
     task_definition_group.add_argument(
         "-rp", "--reducer_path",
         type=str,
-        default="/home/mapper.py",
+        default="/home/reducer.py",
         help="A path to a Python reducer implementation file"
     )
 
