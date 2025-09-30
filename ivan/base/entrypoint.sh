@@ -88,7 +88,6 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/mapred-site.xml mapreduce.shuffle.port 13562
     addProperty /etc/hadoop/mapred-site.xml mapreduce.map.log.level DEBUG
     addProperty /etc/hadoop/mapred-site.xml mapreduce.task.files.preserve.failedtasks true
-    addProperty /etc/hadoop/mapred-site.xml mapreduce.job.reduce.slowstart.completedmaps 1
     addProperty /etc/hadoop/mapred-site.xml mapreduce.map.speculative false
     addProperty /etc/hadoop/mapred-site.xml mapreduce.reduce.speculative false
 
