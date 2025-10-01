@@ -5,6 +5,16 @@ import subprocess
 from enum import Enum
 from typing import List
 
+units = {
+        "B": 1,
+        "KB": 1024,
+        "K": 1024,
+        "MB": 1024 ** 2,
+        "M": 1024 ** 2,
+        "GB": 1024 ** 3,
+        "G": 1024 ** 3
+    }
+
 
 class CompressionCodec(Enum):
     DEFAULT = "org.apache.hadoop.io.compress.DefaultCodec"
@@ -52,15 +62,6 @@ def parse_size(value: str) -> int:
     - "512kb" -> 524288
     - "100"   -> 100 bytes
     """
-    units = {
-        "B": 1,
-        "KB": 1024,
-        "K": 1024,
-        "MB": 1024 ** 2,
-        "M": 1024 ** 2,
-        "GB": 1024 ** 3,
-        "G": 1024 ** 3
-    }
 
     pattern = r"^\s*(\d+)\s*([KMGB]{1,2})?\s*$"
     match = re.match(pattern, value.strip().upper())
@@ -120,6 +121,13 @@ def get_hadoop_job_args(arguments) -> List[str]:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description="This program serves as a wrapper for starting a distributed task using Hadoop framework"
+    )
+
+    parser.add_argument(
+        "-dr", "--dry-run",
+        action="store_true",
+        default=False,
+        help="Print the Hadoop command and exit"
     )
 
     task_definition_group = parser.add_argument_group("Task Definition Settings")
@@ -288,4 +296,9 @@ if __name__ == '__main__':
     )
 
     args = parser.parse_args()
-    subprocess.run(get_hadoop_job_args(args), check=True)
+
+    if args.dry_run:
+        #
+        print(get_hadoop_command(args))
+    else:
+        subprocess.run(get_hadoop_job_args(args), check=True)
