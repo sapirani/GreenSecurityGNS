@@ -103,14 +103,16 @@ hadoop jar /opt/hadoop-3.4.1/share/hadoop/tools/lib/hadoop-streaming-3.4.1.jar
   -file {arguments.reducer_path}
 """
 
+    print(job_str)
+
     # Clean the command string: strip, replace newlines and multiple spaces with one space
-    cleaned_cmd = re.sub(r'\s+', ' ', job_str.strip())
-
-    # Split command into list safely
-    hadoop_job_args = shlex.split(cleaned_cmd)
-
-    # Run subprocess
-    subprocess.run(hadoop_job_args, check=True)
+    # cleaned_cmd = re.sub(r'\s+', ' ', job_str.strip())
+    #
+    # # Split command into list safely
+    # hadoop_job_args = shlex.split(cleaned_cmd)
+    #
+    # # Run subprocess
+    # subprocess.run(hadoop_job_args, check=True)
 
 
 if __name__ == '__main__':
@@ -242,7 +244,7 @@ if __name__ == '__main__':
     )
 
     memory_group.add_argument(
-        "--min_split_size",
+        "-n", "--min_split_size",
         type=parse_size,
         default="0B",
         help="Minimum input split size (e.g., 64MB). "
@@ -251,7 +253,7 @@ if __name__ == '__main__':
     )
 
     memory_group.add_argument(
-        "--max_split_size",
+        "-x", "--max_split_size",
         type=parse_size,
         default="128MB",
         help="Maximum input split size with units (B, KB, MB, GB). "
@@ -261,7 +263,7 @@ if __name__ == '__main__':
     shuffle_and_compression_group = parser.add_argument_group("Shuffle & Compression Settings")
 
     shuffle_and_compression_group.add_argument(
-        "--io_sort_factor",
+        "-f", "--io_sort_factor",
         type=positive_int,
         default=10,
         help="Number of streams merged simultaneously during map output sort."
