@@ -103,16 +103,14 @@ hadoop jar /opt/hadoop-3.4.1/share/hadoop/tools/lib/hadoop-streaming-3.4.1.jar
   -file {arguments.reducer_path}
 """
 
-    print(job_str)
-
     # Clean the command string: strip, replace newlines and multiple spaces with one space
-    # cleaned_cmd = re.sub(r'\s+', ' ', job_str.strip())
-    #
-    # # Split command into list safely
-    # hadoop_job_args = shlex.split(cleaned_cmd)
-    #
-    # # Run subprocess
-    # subprocess.run(hadoop_job_args, check=True)
+    cleaned_cmd = re.sub(r'\s+', ' ', job_str.strip())
+
+    # Split command into list safely
+    hadoop_job_args = shlex.split(cleaned_cmd)
+
+    # Run subprocess
+    subprocess.run(hadoop_job_args, check=True)
 
 
 if __name__ == '__main__':
