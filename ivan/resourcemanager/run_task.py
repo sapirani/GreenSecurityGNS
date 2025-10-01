@@ -3,6 +3,7 @@ import re
 import shlex
 import subprocess
 from enum import Enum
+from typing import List
 
 
 class CompressionCodec(Enum):
@@ -74,8 +75,9 @@ def parse_size(value: str) -> int:
     return number * multiplier
 
 
-def run_distributed_task(arguments):
-    job_str = f"""
+# TODO: DECIDE ABOUT THE TYPING HERE. WE MAY CONVERT THE ARGUMENTS INTO DATACLASS BEFORE AND RECEIVE A DATACLASS HERE
+def get_hadoop_command(arguments) -> str:
+    return f"""
 hadoop jar /opt/hadoop-3.4.1/share/hadoop/tools/lib/hadoop-streaming-3.4.1.jar
   -D mapreduce.job.maps={arguments.mappers}
   -D mapreduce.job.reduces={arguments.reducers}
@@ -103,14 +105,16 @@ hadoop jar /opt/hadoop-3.4.1/share/hadoop/tools/lib/hadoop-streaming-3.4.1.jar
   -file {arguments.reducer_path}
 """
 
+
+# TODO: ADD TYPING
+def get_hadoop_job_args(arguments) -> List[str]:
+    job_str = get_hadoop_command(arguments)
+
     # Clean the command string: strip, replace newlines and multiple spaces with one space
     cleaned_cmd = re.sub(r'\s+', ' ', job_str.strip())
 
     # Split command into list safely
-    hadoop_job_args = shlex.split(cleaned_cmd)
-
-    # Run subprocess
-    subprocess.run(hadoop_job_args, check=True)
+    return shlex.split(cleaned_cmd)
 
 
 if __name__ == '__main__':
@@ -284,4 +288,4 @@ if __name__ == '__main__':
     )
 
     args = parser.parse_args()
-    run_distributed_task(args)
+    subprocess.run(get_hadoop_job_args(args), check=True)
