@@ -330,6 +330,11 @@ class HadoopJobConfig(BaseModel):
         return parser
 
     def get_hadoop_job_args(self) -> List[str]:
+        """
+        :return: A ready-to-use list of strings, which can be fed directly to subprocess.Popen, subprocess.run, etc.
+        Creating a subprocess using this return value will run the distributed Hadoop job using the parameters
+        configured in this class.
+        """
         job_str = str(self)
         cleaned_cmd = re.sub(r"\s+", " ", job_str.strip())
         return shlex.split(cleaned_cmd)
