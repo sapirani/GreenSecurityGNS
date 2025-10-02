@@ -6,7 +6,6 @@ import re
 
 from pydantic import BaseModel, Field
 
-GROUP_KEY = "group"
 GENERAL_GROUP = "General"
 HUMAN_READABLE_KEY = "human_readable"
 
@@ -67,37 +66,29 @@ class HadoopJobConfig(BaseModel):
     input_path: str = Field(
         default="/input",
         alias="i",
-        description="HDFS path to the input directory",
-        json_schema_extra={
-            GROUP_KEY: Groups.TASK_DEFINITION.value,
-        },
+        title=Groups.TASK_DEFINITION.value,
+        description="HDFS path to the input directory"
     )
 
     output_path: str = Field(
         default="/output",
         alias="o",
+        title=Groups.TASK_DEFINITION.value,
         description="HDFS path to the output directory",
-        json_schema_extra={
-            GROUP_KEY: Groups.TASK_DEFINITION.value,
-        },
     )
 
     mapper_path: str = Field(
         default="/home/mapper.py",
         alias="mp",
+        title=Groups.TASK_DEFINITION.value,
         description="Path to the mapper implementation",
-        json_schema_extra={
-            GROUP_KEY: Groups.TASK_DEFINITION.value
-        },
     )
 
     reducer_path: str = Field(
         default="/home/reducer.py",
         alias="rp",
+        title=Groups.TASK_DEFINITION.value,
         description="Path to the reducer implementation",
-        json_schema_extra={
-            GROUP_KEY: Groups.TASK_DEFINITION.value
-        },
     )
 
     # Parallelism & Scheduling
@@ -105,82 +96,66 @@ class HadoopJobConfig(BaseModel):
         default=2,
         gt=0,
         alias="m",
+        title=Groups.PARALLELISM_AND_SCHEDULING.value,
         description="Number of mapper tasks",
-        json_schema_extra={
-            GROUP_KEY: Groups.PARALLELISM_AND_SCHEDULING.value
-        },
     )
 
     number_of_reducers: int = Field(
         default=1,
         gt=0,
         alias="r",
+        title=Groups.PARALLELISM_AND_SCHEDULING.value,
         description="Number of reducer tasks",
-        json_schema_extra={
-            GROUP_KEY: Groups.PARALLELISM_AND_SCHEDULING.value
-        },
     )
 
     map_vcores: int = Field(
         default=1,
         gt=0,
         alias="mc",
+        title=Groups.PARALLELISM_AND_SCHEDULING.value,
         description="Number of vCores per map task",
-        json_schema_extra={
-            GROUP_KEY: Groups.PARALLELISM_AND_SCHEDULING.value
-        },
     )
 
     reduce_vcores: int = Field(
         default=1,
         gt=0,
         alias="rc",
+        title=Groups.PARALLELISM_AND_SCHEDULING.value,
         description="Number of vCores per reduce task",
-        json_schema_extra={
-            GROUP_KEY: Groups.PARALLELISM_AND_SCHEDULING.value
-        },
     )
 
     application_manager_vcores: int = Field(
         default=1,
         gt=0,
         alias="ac",
+        title=Groups.PARALLELISM_AND_SCHEDULING.value,
         description="Number of vCores for the application master",
-        json_schema_extra={
-            GROUP_KEY: Groups.PARALLELISM_AND_SCHEDULING.value
-        },
     )
 
     shuffle_copies: int = Field(
         default=5,
         gt=0,
         alias="sc",
+        title=Groups.PARALLELISM_AND_SCHEDULING.value,
         description="Parallel copies per reduce during shuffle. "
                     "More copies speed up shuffle but risk saturating network or disk I/O.",
-        json_schema_extra={
-            GROUP_KEY: Groups.PARALLELISM_AND_SCHEDULING.value,
-        },
     )
 
     jvm_numtasks: int = Field(
         default=1,
         gt=0,
         alias="jvm",
+        title=Groups.PARALLELISM_AND_SCHEDULING.value,
         description="Number of tasks per JVM to reduce JVM startup overhead.",
-        json_schema_extra={
-            GROUP_KEY: Groups.PARALLELISM_AND_SCHEDULING.value
-        },
     )
 
     slowstart_completed_maps: float = Field(
         default=0.05,
         ge=0,
         alias="ssc",
+        title=Groups.PARALLELISM_AND_SCHEDULING.value,
         description="Fraction of maps to finish before reduce begins. "
                     "Higher delays reduce phase but reduces load on shuffle.",
-        json_schema_extra={
-            GROUP_KEY: Groups.PARALLELISM_AND_SCHEDULING.value
-        },
     )
 
     # Memory
@@ -188,51 +163,43 @@ class HadoopJobConfig(BaseModel):
         default=1024,
         gt=0,
         alias="mm",
+        title=Groups.MEMORY.value,
         description="Memory per map task (MB).",
-        json_schema_extra={
-            GROUP_KEY: Groups.MEMORY.value
-        },
     )
 
     reduce_memory_mb: int = Field(
         default=1024,
         gt=0,
         alias="rm",
+        title=Groups.MEMORY.value,
         description="Memory per reduce task (MB)",
-        json_schema_extra={
-            GROUP_KEY: Groups.MEMORY.value
-        },
     )
 
     application_manager_memory_mb: int = Field(
         default=1536,
         gt=0,
         alias="am",
+        title=Groups.MEMORY.value,
         description="Memory for application master (MB)",
-        json_schema_extra={
-            GROUP_KEY: Groups.MEMORY.value
-        },
     )
 
     sort_buffer_mb: int = Field(
         default=100,
         gt=0,
         alias="sb",
+        title=Groups.MEMORY.value,
         description="Sort buffer size (MB)",
-        json_schema_extra={
-            GROUP_KEY: Groups.MEMORY.value
-        },
     )
 
     min_split_size: int = Field(
         default="0B",
         ge=0,
         alias="n",
+        title=Groups.MEMORY.value,
         description="Minimum input split size with human-readable units (B, KB, MB, GB). "
                     "Larger min split size reduces the number of map tasks, "
                     "improving startup overhead but may reduce parallelism.",
         json_schema_extra={
-            GROUP_KEY: Groups.MEMORY.value,
             HUMAN_READABLE_KEY: True,
         },
     )
@@ -241,11 +208,11 @@ class HadoopJobConfig(BaseModel):
         default=128 * 1024 * 1024,
         gt=0,
         alias="x",
+        title=Groups.MEMORY.value,
         description="Maximum input split size with human-readable units (B, KB, MB, GB). "
                     "Effectively determines the number of mappers that will be used "
                     "(together with the input size).",
         json_schema_extra={
-            GROUP_KEY: Groups.MEMORY.value,
             HUMAN_READABLE_KEY: True
         },
     )
@@ -255,30 +222,24 @@ class HadoopJobConfig(BaseModel):
         default=10,
         gt=0,
         alias="f",
+        title=Groups.SHUFFLE_AND_COMPRESSION.value,
         description="Number of streams merged simultaneously during map output sort.",
-        json_schema_extra={
-            GROUP_KEY: Groups.SHUFFLE_AND_COMPRESSION.value
-        },
     )
 
     should_compress: bool = Field(
         default=False,
         alias="c",
+        title=Groups.SHUFFLE_AND_COMPRESSION.value,
         description="Enable compression of map outputs before shuffle. "
                     "Compression reduces network traffic at the cost of additional CPU usage.",
-        json_schema_extra={
-            GROUP_KEY: Groups.SHUFFLE_AND_COMPRESSION.value
-        },
     )
 
     map_compress_codec: CompressionCodec = Field(
         default=CompressionCodec.DEFAULT,
         alias="mcc",
+        title=Groups.SHUFFLE_AND_COMPRESSION.value,
         description="Compression codec for map output. "
-                    "Options: " + ", ".join(f"{c.name} ('{c.value}')" for c in CompressionCodec),
-        json_schema_extra={
-            GROUP_KEY: Groups.SHUFFLE_AND_COMPRESSION.value
-        }
+                    "Options: " + ", ".join(f"{c.name} ('{c.value}')" for c in CompressionCodec)
     )
 
     @classmethod
@@ -303,15 +264,13 @@ class HadoopJobConfig(BaseModel):
         # Create argument groups
         groups = {}
         for name, field in self.model_fields.items():
-            meta = field.json_schema_extra or {}
-            group_name = meta.get(GROUP_KEY, "General")
+            group_name = field.title if field.title else GENERAL_GROUP
             if group_name not in groups:
                 groups[group_name] = parser.add_argument_group(group_name)
 
         for name, field in self.model_fields.items():
-
             meta = field.json_schema_extra or {}
-            group_name = meta.get(GROUP_KEY, GENERAL_GROUP)
+            group_name = field.title if field.title else GENERAL_GROUP
             group = groups[group_name]
 
             short_flag = f"-{field.alias}"
