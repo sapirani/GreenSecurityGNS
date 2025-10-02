@@ -11,14 +11,14 @@ GROUP_KEY = "group"
 GENERAL_GROUP = "General"
 
 units = {
-        "B": 1,
-        "KB": 1024,
-        "K": 1024,
-        "MB": 1024 ** 2,
-        "M": 1024 ** 2,
-        "GB": 1024 ** 3,
-        "G": 1024 ** 3
-    }
+    "B": 1,
+    "KB": 1024,
+    "K": 1024,
+    "MB": 1024 ** 2,
+    "M": 1024 ** 2,
+    "GB": 1024 ** 3,
+    "G": 1024 ** 3
+}
 
 
 def parse_size(value: str) -> int:
@@ -66,188 +66,187 @@ class HadoopJobConfig(BaseModel):
     # Task Definition
     input_path: str = Field(
         default="/input",
+        description="HDFS path to the input directory",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-i",
             GROUP_KEY: Groups.TASK_DEFINITION.value,
-            "description": "HDFS path to the input directory"
         },
     )
     output_path: str = Field(
         default="/output",
+        description="HDFS path to the output directory",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-o",
             GROUP_KEY: Groups.TASK_DEFINITION.value,
-            "description": "HDFS path to the output directory"
         },
     )
     mapper_path: str = Field(
         default="/home/mapper.py",
+        description="Path to the mapper implementation",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-mp",
-            GROUP_KEY: Groups.TASK_DEFINITION.value,
-            "description": "Path to the mapper implementation"
+            GROUP_KEY: Groups.TASK_DEFINITION.value
         },
     )
     reducer_path: str = Field(
         default="/home/reducer.py",
+        description="Path to the reducer implementation",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-rp",
-            GROUP_KEY: Groups.TASK_DEFINITION.value,
-            "description": "Path to the reducer implementation"
+            GROUP_KEY: Groups.TASK_DEFINITION.value
         },
     )
 
     # Parallelism & Scheduling
-    mappers: int = Field(
+    number_of_mappers: int = Field(
         default=2,
+        description="Number of mapper tasks",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-m",
-            GROUP_KEY: Groups.PARALLELISM_AND_SCHEDULING.value,
-            "description": "Number of mapper tasks"
+            GROUP_KEY: Groups.PARALLELISM_AND_SCHEDULING.value
         },
     )
-    reducers: int = Field(
+    number_of_reducers: int = Field(
         default=1,
+        description="Number of reducer tasks",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-r",
-            GROUP_KEY: Groups.PARALLELISM_AND_SCHEDULING.value,
-            "description": "Number of reducer tasks"
+            GROUP_KEY: Groups.PARALLELISM_AND_SCHEDULING.value
         },
     )
     map_vcores: int = Field(
         default=1,
+        description="Number of vCores per map task",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-mc",
-            GROUP_KEY: Groups.PARALLELISM_AND_SCHEDULING.value,
-            "description": "Number of vCores per map task"
+            GROUP_KEY: Groups.PARALLELISM_AND_SCHEDULING.value
         },
     )
     reduce_vcores: int = Field(
         default=1,
+        description="Number of vCores per reduce task",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-rc",
-            GROUP_KEY: Groups.PARALLELISM_AND_SCHEDULING.value,
-            "description": "Number of vCores per reduce task"
+            GROUP_KEY: Groups.PARALLELISM_AND_SCHEDULING.value
         },
     )
     application_manager_vcores: int = Field(
         default=1,
+        description="Number of vCores for the application master",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-ac",
-            GROUP_KEY: Groups.PARALLELISM_AND_SCHEDULING.value,
-            "description": "Number of vCores for the application master"
+            GROUP_KEY: Groups.PARALLELISM_AND_SCHEDULING.value
         },
     )
     shuffle_copies: int = Field(
         default=5,
+        description="Parallel copies per reduce during shuffle. "
+                    "More copies speed up shuffle but risk saturating network or disk I/O.",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-sc",
             GROUP_KEY: Groups.PARALLELISM_AND_SCHEDULING.value,
-            "description": "Parallel copies per reduce during shuffle."
-                           "More copies speed up shuffle but risk saturating network or disk I/O."
         },
     )
     jvm_numtasks: int = Field(
         default=1,
+        description="Number of tasks per JVM to reduce JVM startup overhead.",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-jvm",
-            GROUP_KEY: Groups.PARALLELISM_AND_SCHEDULING.value,
-            "description": "Number of tasks per JVM to reduce JVM startup overhead."
+            GROUP_KEY: Groups.PARALLELISM_AND_SCHEDULING.value
         },
     )
     slowstart_completed_maps: float = Field(
         default=0.05,
+        description="Fraction of maps to finish before reduce begins. "
+                    "Higher delays reduce phase but reduces load on shuffle.",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-ssc",
-            GROUP_KEY: Groups.PARALLELISM_AND_SCHEDULING.value,
-            "description": "Fraction of maps to finish before reduce begins. "
-                           "Higher delays reduce phase but reduces load on shuffle."},
+            GROUP_KEY: Groups.PARALLELISM_AND_SCHEDULING.value
+        },
     )
 
     # Memory
-    map_memory: int = Field(
+    map_memory_mb: int = Field(
         default=1024,
+        description="Memory per map task (MB).",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-mm",
-            GROUP_KEY: Groups.MEMORY.value,
-            "description":
-                "Memory per map task (MB)."
+            GROUP_KEY: Groups.MEMORY.value
         },
     )
-    reduce_memory: int = Field(
+    reduce_memory_mb: int = Field(
         default=1024,
+        description="Memory per reduce task (MB)",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-rm",
-            GROUP_KEY: Groups.MEMORY.value,
-            "description": "Memory per reduce task (MB)"
+            GROUP_KEY: Groups.MEMORY.value
         },
     )
-    application_manager_memory: int = Field(
+    application_manager_memory_mb: int = Field(
         default=1536,
+        description="Memory for application master (MB)",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-am",
-            GROUP_KEY: Groups.MEMORY.value,
-            "description": "Memory for application master (MB)"
+            GROUP_KEY: Groups.MEMORY.value
         },
     )
     sort_buffer_mb: int = Field(
         default=100,
+        description="Sort buffer size (MB)",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-sb",
-            GROUP_KEY: Groups.MEMORY.value,
-            "description": "Sort buffer size (MB)"
+            GROUP_KEY: Groups.MEMORY.value
         },
     )
     min_split_size: int = Field(
         default="0B",
+        description="Minimum input split size with human-readable units (B, KB, MB, GB). "
+                    "Larger min split size reduces the number of map tasks, "
+                    "improving startup overhead but may reduce parallelism.",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-n",
             GROUP_KEY: Groups.MEMORY.value,
             "human_readable": True,
-            "description": "Minimum input split size with human-readable units (B, KB, MB, GB). "
-                           "Larger min split size reduces the number of map tasks, "
-                           "improving startup overhead but may reduce parallelism."
         },
     )
     max_split_size: int = Field(
         default=128 * 1024 * 1024,
+        description="Maximum input split size with human-readable units (B, KB, MB, GB). "
+                    "Effectively determines the number of mappers that will be used "
+                    "(together with the input size).",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-x",
             GROUP_KEY: Groups.MEMORY.value,
-            "human_readable": True,
-            "description": "Maximum input split size with human-readable units (B, KB, MB, GB). "
-                           "Effectively determines the number of mappers that will be used "
-                           "(together with the input size)."
+            "human_readable": True
         },
     )
 
     # Shuffle & Compression
     io_sort_factor: int = Field(
         default=10,
+        description="Number of streams merged simultaneously during map output sort.",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-f",
-            GROUP_KEY: Groups.SHUFFLE_AND_COMPRESSION.value,
-            "description": "Number of streams merged simultaneously during map output sort."
+            GROUP_KEY: Groups.SHUFFLE_AND_COMPRESSION.value
         },
     )
     should_compress: bool = Field(
         default=False,
+        description="Enable compression of map outputs before shuffle. "
+                    "Compression reduces network traffic at the cost of additional CPU usage.",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-c",
-            GROUP_KEY: Groups.SHUFFLE_AND_COMPRESSION.value,
-            "description": "Enable compression of map outputs before shuffle. "
-                           "Compression reduces network traffic at the cost of additional CPU usage."
+            GROUP_KEY: Groups.SHUFFLE_AND_COMPRESSION.value
         },
     )
     map_compress_codec: CompressionCodec = Field(
         default=CompressionCodec.DEFAULT,
+        description="Compression codec for map output. "
+                    "Options: " + ", ".join(f"{c.name} ('{c.value}')" for c in CompressionCodec),
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-mcc",
-            GROUP_KEY: Groups.SHUFFLE_AND_COMPRESSION.value,
-            "description":
-                "Compression codec for map output. "
-                "Options: " + ", ".join(f"{c.name} ('{c.value}')" for c in CompressionCodec)
-        },
+            GROUP_KEY: Groups.SHUFFLE_AND_COMPRESSION.value
+        }
     )
 
     @classmethod
@@ -260,7 +259,9 @@ class HadoopJobConfig(BaseModel):
                 d["map_compress_codec"] = CompressionCodec[d["map_compress_codec"]]
             except KeyError:
                 raise ValueError(
-                    f"Invalid map_compress_codec '{d['map_compress_codec']}', must be one of {[e.name for e in CompressionCodec]}")
+                    f"Invalid map_compress_codec '{d['map_compress_codec']}', "
+                    f"must be one of {[e.name for e in CompressionCodec]}"
+                )
 
         return cls.model_validate(d)
 
@@ -276,6 +277,7 @@ class HadoopJobConfig(BaseModel):
                 groups[group_name] = parser.add_argument_group(group_name)
 
         for name, field in self.model_fields.items():
+
             meta = field.json_schema_extra or {}
             group_name = meta.get(GROUP_KEY, GENERAL_GROUP)
             group = groups[group_name]
@@ -285,7 +287,7 @@ class HadoopJobConfig(BaseModel):
             if short_flag:
                 flags.insert(0, short_flag)
 
-            help_text = meta.get("description", "")
+            help_text = field.description if field.description else ""
             default_value = getattr(self, name)
             arg_type = field.annotation
 
@@ -335,11 +337,11 @@ class HadoopJobConfig(BaseModel):
     def __str__(self) -> str:
         return f"""
 hadoop jar /opt/hadoop-3.4.1/share/hadoop/tools/lib/hadoop-streaming-3.4.1.jar
-  -D mapreduce.job.maps={self.mappers}
-  -D mapreduce.job.reduces={self.reducers}
-  -D mapreduce.map.memory.mb={self.map_memory}
-  -D mapreduce.reduce.memory.mb={self.reduce_memory}
-  -D yarn.app.mapreduce.am.resource.mb={self.application_manager_memory}
+  -D mapreduce.job.maps={self.number_of_mappers}
+  -D mapreduce.job.reduces={self.number_of_reducers}
+  -D mapreduce.map.memory.mb={self.map_memory_mb}
+  -D mapreduce.reduce.memory.mb={self.reduce_memory_mb}
+  -D yarn.app.mapreduce.am.resource.mb={self.application_manager_memory_mb}
   -D mapreduce.map.cpu.vcores={self.map_vcores}
   -D mapreduce.reduce.cpu.vcores={self.reduce_vcores}
   -D yarn.app.mapreduce.am.resource.cpu-vcores={self.application_manager_vcores}
