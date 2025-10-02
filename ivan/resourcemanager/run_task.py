@@ -14,10 +14,9 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-
-    config = HadoopJobConfig.from_argparse(args)
+    hadoop_job_config = HadoopJobConfig.from_argparse(args)
 
     if args.print_command_only:
-        print(config)
+        print(hadoop_job_config)
     else:
-        subprocess.run(config.get_hadoop_job_args(), check=True)
+        subprocess.run(hadoop_job_config.get_hadoop_job_args(), check=True)
