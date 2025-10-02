@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 FIELD_SHORTCUT_KEY = "short"
 GROUP_KEY = "group"
 GENERAL_GROUP = "General"
+HUMAN_READABLE_KEY = "human_readable"
 
 units = {
     "B": 1,
@@ -100,6 +101,7 @@ class HadoopJobConfig(BaseModel):
     # Parallelism & Scheduling
     number_of_mappers: int = Field(
         default=2,
+        gt=0,
         description="Number of mapper tasks",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-m",
@@ -108,6 +110,7 @@ class HadoopJobConfig(BaseModel):
     )
     number_of_reducers: int = Field(
         default=1,
+        gt=0,
         description="Number of reducer tasks",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-r",
@@ -116,6 +119,7 @@ class HadoopJobConfig(BaseModel):
     )
     map_vcores: int = Field(
         default=1,
+        gt=0,
         description="Number of vCores per map task",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-mc",
@@ -124,6 +128,7 @@ class HadoopJobConfig(BaseModel):
     )
     reduce_vcores: int = Field(
         default=1,
+        gt=0,
         description="Number of vCores per reduce task",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-rc",
@@ -132,6 +137,7 @@ class HadoopJobConfig(BaseModel):
     )
     application_manager_vcores: int = Field(
         default=1,
+        gt=0,
         description="Number of vCores for the application master",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-ac",
@@ -140,6 +146,7 @@ class HadoopJobConfig(BaseModel):
     )
     shuffle_copies: int = Field(
         default=5,
+        gt=0,
         description="Parallel copies per reduce during shuffle. "
                     "More copies speed up shuffle but risk saturating network or disk I/O.",
         json_schema_extra={
@@ -149,6 +156,7 @@ class HadoopJobConfig(BaseModel):
     )
     jvm_numtasks: int = Field(
         default=1,
+        gt=0,
         description="Number of tasks per JVM to reduce JVM startup overhead.",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-jvm",
@@ -157,6 +165,7 @@ class HadoopJobConfig(BaseModel):
     )
     slowstart_completed_maps: float = Field(
         default=0.05,
+        ge=0,
         description="Fraction of maps to finish before reduce begins. "
                     "Higher delays reduce phase but reduces load on shuffle.",
         json_schema_extra={
@@ -168,6 +177,7 @@ class HadoopJobConfig(BaseModel):
     # Memory
     map_memory_mb: int = Field(
         default=1024,
+        gt=0,
         description="Memory per map task (MB).",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-mm",
@@ -176,6 +186,7 @@ class HadoopJobConfig(BaseModel):
     )
     reduce_memory_mb: int = Field(
         default=1024,
+        gt=0,
         description="Memory per reduce task (MB)",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-rm",
@@ -184,6 +195,7 @@ class HadoopJobConfig(BaseModel):
     )
     application_manager_memory_mb: int = Field(
         default=1536,
+        gt=0,
         description="Memory for application master (MB)",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-am",
@@ -192,6 +204,7 @@ class HadoopJobConfig(BaseModel):
     )
     sort_buffer_mb: int = Field(
         default=100,
+        gt=0,
         description="Sort buffer size (MB)",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-sb",
@@ -200,30 +213,33 @@ class HadoopJobConfig(BaseModel):
     )
     min_split_size: int = Field(
         default="0B",
+        ge=0,
         description="Minimum input split size with human-readable units (B, KB, MB, GB). "
                     "Larger min split size reduces the number of map tasks, "
                     "improving startup overhead but may reduce parallelism.",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-n",
             GROUP_KEY: Groups.MEMORY.value,
-            "human_readable": True,
+            HUMAN_READABLE_KEY: True,
         },
     )
     max_split_size: int = Field(
         default=128 * 1024 * 1024,
+        gt=0,
         description="Maximum input split size with human-readable units (B, KB, MB, GB). "
                     "Effectively determines the number of mappers that will be used "
                     "(together with the input size).",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-x",
             GROUP_KEY: Groups.MEMORY.value,
-            "human_readable": True
+            HUMAN_READABLE_KEY: True
         },
     )
 
     # Shuffle & Compression
     io_sort_factor: int = Field(
         default=10,
+        gt=0,
         description="Number of streams merged simultaneously during map output sort.",
         json_schema_extra={
             FIELD_SHORTCUT_KEY: "-f",
