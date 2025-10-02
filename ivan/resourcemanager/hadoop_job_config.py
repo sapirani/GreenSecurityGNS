@@ -1,4 +1,5 @@
 import argparse
+import inspect
 import shlex
 from enum import Enum
 from pathlib import Path
@@ -77,6 +78,11 @@ class Groups(str, Enum):
 
 
 class HadoopJobConfig(BaseModel):
+    """
+    For now, any field *must* have a default value. If you wish to add a field without a default value, add
+    required=True in this field when converting this class into argparse.
+    """
+
     # Support model validation with aliases
     model_config = {
         "validate_by_name": True,
@@ -173,6 +179,7 @@ class HadoopJobConfig(BaseModel):
     slowstart_completed_maps: float = Field(
         default=0.05,
         ge=0,
+        le=1,
         alias="ssc",
         title=Groups.PARALLELISM_AND_SCHEDULING.value,
         description="Fraction of maps to finish before reduce begins. "
@@ -276,53 +283,55 @@ class HadoopJobConfig(BaseModel):
     def from_argparse(cls, args: argparse.Namespace) -> "HadoopJobConfig":
         return cls.model_validate(vars(args).copy())
 
-    def to_argparse(self) -> argparse.ArgumentParser:
-        parser = argparse.ArgumentParser(description="A Python wrapper for Hadoop job configuration")
+    @classmethod
+    def to_argparse(cls) -> argparse.ArgumentParser:
+        """
+        Converts the pydantic configuration into argparse to be used as CLI.
+        This function uses the defaults defined in each field as the default values in the argparse
+        (instance values are not taken in consideration).
+        """
+        parser = argparse.  ArgumentParser(description="A Python wrapper for Hadoop job configuration")
 
-        # Create argument groups
         groups = {}
-        for name, field in self.model_fields.items():
+        for name, field in cls.model_fields.items():
+            meta = field.json_schema_extra or {}
             group_name = field.title if field.title else GENERAL_GROUP
             if group_name not in groups:
                 groups[group_name] = parser.add_argument_group(group_name)
-
-        for name, field in self.model_fields.items():
-            meta = field.json_schema_extra or {}
-            group_name = field.title if field.title else GENERAL_GROUP
             group = groups[group_name]
 
-            short_flag = f"-{field.alias}"
+            short_flag = f"-{field.alias}" if field.alias else None
             flags = [f"--{name}"]
             if short_flag:
                 flags.insert(0, short_flag)
 
             help_text = field.description if field.description else ""
-            default_value = getattr(self, name)
+            field_default = field.default
             arg_type = field.annotation
 
             # Handle Enums (case-insensitive)
-            if isinstance(default_value, Enum):
-                choices = [e.name.upper() for e in type(default_value)]
+            if inspect.isclass(arg_type) and issubclass(arg_type, Enum):
+                choices = [e.name.upper() for e in type(field_default)]
                 group.add_argument(
                     *flags,
                     type=str.upper,  # parse upper-case user input
                     choices=choices,
-                    default=default_value.name.upper(),
-                    help=f"{help_text} (options: {', '.join(choices)}, default: {default_value.name.upper()})"
+                    default=field_default.name.upper(),
+                    help=f"{help_text} (options: {', '.join(choices)}, default: {field_default.name.upper()})"
                 )
 
             # Handle human-readable sizes
-            elif meta.get("human_readable", False):
+            elif meta.get(HUMAN_READABLE_KEY, False):
                 group.add_argument(
                     *flags,
                     type=parse_size,
-                    default=default_value,
-                    help=f"{help_text} (accepts 256MB, 1G, etc., default: {default_value} bytes)"
+                    default=field_default,
+                    help=f"{help_text} (accepts 256MB, 1G, etc., default: {field_default} bytes)"
                 )
 
             # Handle booleans
             elif arg_type is bool:
-                if default_value is True:
+                if field_default is True:
                     group.add_argument(*flags, action="store_false", help=f"{help_text} (default: True)")
                 else:
                     group.add_argument(*flags, action="store_true", help=f"{help_text} (default: False)")
@@ -332,8 +341,8 @@ class HadoopJobConfig(BaseModel):
                 group.add_argument(
                     *flags,
                     type=arg_type,
-                    default=default_value,
-                    help=f"{help_text} (default: {default_value})"
+                    default=field_default,
+                    help=f"{help_text} (default: {field_default})"
                 )
 
         return parser

@@ -4,7 +4,7 @@ from hadoop_job_config import HadoopJobConfig
 
 if __name__ == "__main__":
     # Build parser from model defaults
-    parser = HadoopJobConfig().to_argparse()
+    parser = HadoopJobConfig.to_argparse()
 
     parser.add_argument(
         "-p", "--print_command_only",
