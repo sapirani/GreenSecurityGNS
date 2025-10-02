@@ -2,7 +2,7 @@ import argparse
 import shlex
 from enum import Enum
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 import re
 
 from pydantic import BaseModel, Field, model_validator
@@ -53,6 +53,20 @@ class CompressionCodec(str, Enum):
     LZO = "com.hadoop.compression.lzo.LzoCodec"
     BZIP2 = "org.apache.hadoop.io.compress.BZip2Codec"
     LZ4 = "org.apache.hadoop.io.compress.Lz4Codec"
+
+    @classmethod
+    def _missing_(cls, value: str) -> Optional["CompressionCodec"]:
+        """
+        This function is called when you try to instantiate an enum with a string value that does not appear in the
+        enum values possibilities.
+        The function search for compatible field names and return that field if it found one.
+        """
+        if isinstance(value, str):
+            for member in cls:
+                if member.name.lower() == value.lower(): # noqa: we are inheriting from str and Enum
+                    return member   # noqa: we are inheriting from str and Enum
+
+        return super()._missing_(value)
 
 
 class Groups(str, Enum):
@@ -260,19 +274,7 @@ class HadoopJobConfig(BaseModel):
 
     @classmethod
     def from_argparse(cls, args: argparse.Namespace) -> "HadoopJobConfig":
-        d = vars(args).copy()
-
-        # Convert string to Enum for map_compress_codec if needed
-        if "map_compress_codec" in d and isinstance(d["map_compress_codec"], str):
-            try:
-                d["map_compress_codec"] = CompressionCodec[d["map_compress_codec"]]
-            except KeyError:
-                raise ValueError(
-                    f"Invalid map_compress_codec '{d['map_compress_codec']}', "
-                    f"must be one of {[e.name for e in CompressionCodec]}"
-                )
-
-        return cls.model_validate(d)
+        return cls.model_validate(vars(args).copy())
 
     def to_argparse(self) -> argparse.ArgumentParser:
         parser = argparse.ArgumentParser(description="A Python wrapper for Hadoop job configuration")
