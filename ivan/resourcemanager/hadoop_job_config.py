@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import List
 import re
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 GENERAL_GROUP = "General"
 HUMAN_READABLE_KEY = "human_readable"
@@ -199,7 +199,7 @@ class HadoopJobConfig(BaseModel):
     )
 
     min_split_size: int = Field(
-        default="0B",
+        default=0,
         ge=0,
         alias="n",
         title=Groups.MEMORY.value,
@@ -248,6 +248,15 @@ class HadoopJobConfig(BaseModel):
         description="Compression codec for map output. "
                     "Options: " + ", ".join(f"{c.name} ('{c.value}')" for c in CompressionCodec)
     )
+
+    @model_validator(mode="after")
+    def check_split_sizes_validity(self) -> "HadoopJobConfig":
+        if not self.min_split_size <= self.max_split_size:
+            raise ValueError(
+                f"`max_split_size` ({self.max_split_size}) must be greater "
+                f"or equal to `min_split_size` ({self.min_split_size})"
+            )
+        return self
 
     @classmethod
     def from_argparse(cls, args: argparse.Namespace) -> "HadoopJobConfig":
