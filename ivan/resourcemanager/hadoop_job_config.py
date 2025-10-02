@@ -1,6 +1,7 @@
 import argparse
 import shlex
 from enum import Enum
+from pathlib import Path
 from typing import List
 import re
 
@@ -62,29 +63,35 @@ class Groups(str, Enum):
 
 
 class HadoopJobConfig(BaseModel):
+    # Support model validation with aliases
+    model_config = {
+        "validate_by_name": True,
+        "validate_by_alias": True
+    }
+
     # Task Definition
-    input_path: str = Field(
+    input_path: Path = Field(
         default="/input",
         alias="i",
         title=Groups.TASK_DEFINITION.value,
         description="HDFS path to the input directory"
     )
 
-    output_path: str = Field(
+    output_path: Path = Field(
         default="/output",
         alias="o",
         title=Groups.TASK_DEFINITION.value,
         description="HDFS path to the output directory",
     )
 
-    mapper_path: str = Field(
+    mapper_path: Path = Field(
         default="/home/mapper.py",
         alias="mp",
         title=Groups.TASK_DEFINITION.value,
         description="Path to the mapper implementation",
     )
 
-    reducer_path: str = Field(
+    reducer_path: Path = Field(
         default="/home/reducer.py",
         alias="rp",
         title=Groups.TASK_DEFINITION.value,
@@ -345,8 +352,8 @@ hadoop jar /opt/hadoop-3.4.1/share/hadoop/tools/lib/hadoop-streaming-3.4.1.jar
   -D mapreduce.task.io.sort.factor={self.io_sort_factor}
   -D mapreduce.map.output.compress={str(self.should_compress).lower()}
   -D mapreduce.map.output.compress.codec={self.map_compress_codec.value}
-  -D mapreduce.input.fileinputformat.split.maxsize={self.max_split_size}
   -D mapreduce.input.fileinputformat.split.minsize={self.min_split_size}
+  -D mapreduce.input.fileinputformat.split.maxsize={self.max_split_size}
   -D mapreduce.reduce.shuffle.parallelcopies={self.shuffle_copies}
   -D mapreduce.job.jvm.numtasks={self.jvm_numtasks}
   -D mapreduce.job.reduce.slowstart.completedmaps={self.slowstart_completed_maps}
