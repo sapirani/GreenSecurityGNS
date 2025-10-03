@@ -289,9 +289,10 @@ class HadoopJobConfig(BaseModel):
             group: _ArgumentGroup,
             field_default: Enum,
             flags: List[str],
-            help_text: str
+            help_text: str,
+            arg_type: Type[Enum]
     ):
-        choices = [e.name.upper() for e in type(field_default)]
+        choices = [e.name.upper() for e in arg_type]
         group.add_argument(
             *flags,
             type=str.upper,  # parse upper-case user input
@@ -376,7 +377,7 @@ class HadoopJobConfig(BaseModel):
             arg_type = field.annotation
 
             if cls._is_enum_argument(arg_type):             # Handle Enums (case-insensitive)
-                cls._to_argparse_add_enum_argument(group, field_default, flags, help_text)
+                cls._to_argparse_add_enum_argument(group, field_default, flags, help_text, arg_type)
             elif cls._is_human_readable_argument(meta):     # Handle human-readable sizes
                 cls._to_argparse_add_human_readable_argument(group, field_default, flags, help_text)
             elif arg_type is bool:                          # Handle booleans
