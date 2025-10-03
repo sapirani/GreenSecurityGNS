@@ -1,9 +1,10 @@
 import argparse
 import inspect
 import shlex
+from argparse import _ArgumentGroup
 from enum import Enum
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Type
 import re
 
 from pydantic import BaseModel, Field, model_validator
@@ -283,6 +284,71 @@ class HadoopJobConfig(BaseModel):
     def from_argparse(cls, args: argparse.Namespace) -> "HadoopJobConfig":
         return cls.model_validate(vars(args).copy())
 
+    @staticmethod
+    def _to_argparse_add_enum_argument(
+            group: _ArgumentGroup,
+            field_default: Enum,
+            flags: List[str],
+            help_text: str
+    ):
+        choices = [e.name.upper() for e in type(field_default)]
+        group.add_argument(
+            *flags,
+            type=str.upper,  # parse upper-case user input
+            choices=choices,
+            default=field_default.name.upper(),
+            help=f"{help_text} (options: {', '.join(choices)}, default: {field_default.name.upper()})"
+        )
+
+    @staticmethod
+    def _to_argparse_add_human_readable_argument(
+            group: _ArgumentGroup,
+            field_default: Enum,
+            flags: List[str],
+            help_text: str
+    ):
+        group.add_argument(
+            *flags,
+            type=parse_size,
+            default=field_default,
+            help=f"{help_text} (accepts 256MB, 1G, etc., default: {field_default} bytes)"
+        )
+
+    @staticmethod
+    def _to_argparse_add_boolean_argument(
+            group: _ArgumentGroup,
+            field_default: Enum,
+            flags: List[str],
+            help_text: str
+    ):
+        if field_default is True:
+            group.add_argument(*flags, action="store_false", help=f"{help_text} (default: True)")
+        else:
+            group.add_argument(*flags, action="store_true", help=f"{help_text} (default: False)")
+
+    @staticmethod
+    def _to_argparse_add_general_argument(
+            group: _ArgumentGroup,
+            field_default: Enum,
+            flags: List[str],
+            help_text: str,
+            arg_type: Type
+    ):
+        group.add_argument(
+            *flags,
+            type=arg_type,
+            default=field_default,
+            help=f"{help_text} (default: {field_default})"
+        )
+
+    @staticmethod
+    def _is_enum_argument(arg_type) -> bool:
+        return inspect.isclass(arg_type) and issubclass(arg_type, Enum)
+
+    @staticmethod
+    def _is_human_readable_argument(metadata) -> bool:
+        return metadata.get(HUMAN_READABLE_KEY, False)
+
     @classmethod
     def to_argparse(cls) -> argparse.ArgumentParser:
         """
@@ -309,41 +375,14 @@ class HadoopJobConfig(BaseModel):
             field_default = field.default
             arg_type = field.annotation
 
-            # Handle Enums (case-insensitive)
-            if inspect.isclass(arg_type) and issubclass(arg_type, Enum):
-                choices = [e.name.upper() for e in type(field_default)]
-                group.add_argument(
-                    *flags,
-                    type=str.upper,  # parse upper-case user input
-                    choices=choices,
-                    default=field_default.name.upper(),
-                    help=f"{help_text} (options: {', '.join(choices)}, default: {field_default.name.upper()})"
-                )
-
-            # Handle human-readable sizes
-            elif meta.get(HUMAN_READABLE_KEY, False):
-                group.add_argument(
-                    *flags,
-                    type=parse_size,
-                    default=field_default,
-                    help=f"{help_text} (accepts 256MB, 1G, etc., default: {field_default} bytes)"
-                )
-
-            # Handle booleans
-            elif arg_type is bool:
-                if field_default is True:
-                    group.add_argument(*flags, action="store_false", help=f"{help_text} (default: True)")
-                else:
-                    group.add_argument(*flags, action="store_true", help=f"{help_text} (default: False)")
-
-            # Handle other types (int, float, str, etc.)
-            else:
-                group.add_argument(
-                    *flags,
-                    type=arg_type,
-                    default=field_default,
-                    help=f"{help_text} (default: {field_default})"
-                )
+            if cls._is_enum_argument(arg_type):             # Handle Enums (case-insensitive)
+                cls._to_argparse_add_enum_argument(group, field_default, flags, help_text)
+            elif cls._is_human_readable_argument(meta):     # Handle human-readable sizes
+                cls._to_argparse_add_human_readable_argument(group, field_default, flags, help_text)
+            elif arg_type is bool:                          # Handle booleans
+                cls._to_argparse_add_boolean_argument(group, field_default, flags, help_text)
+            else:                                           # Handle other types (int, float, str, etc.)
+                cls._to_argparse_add_general_argument(group, field_default, flags, help_text, arg_type)
 
         return parser
 
