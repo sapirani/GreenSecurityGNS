@@ -1,7 +1,9 @@
+import math
 from enum import Enum
 from itertools import product
-from typing import List, Iterator, Dict, Any, Union, Iterable
-from pydantic import BaseModel, model_validator, PrivateAttr
+from pathlib import Path
+from typing import List, Iterator, Dict, Any, Union, Iterable, Sequence
+from pydantic import BaseModel, model_validator, PrivateAttr, Field
 from ivan.resourcemanager.hadoop_job_config import CompressionCodec, HadoopJobConfig
 
 
@@ -14,42 +16,43 @@ class AutomaticExperimentsConfig(BaseModel):
     """
     This class is basically a wrapper for 'HadoopJobConfig'.
     It enables configuring multiple combinations for each field to establish multiple jos configurations easily.
+    If a field's value stays None, the default value for the field will be selected.
     """
-
-    # TODO: HANDLE OUTPUT PATHS - TO ENSURE THAT THE EXPERIMENTS ARE NOT FAILING DUE TO ALREADY EXISTING DIRECTORY
 
     # Meta parameters
     mode: ExperimentMode = ExperimentMode.SEQUENTIAL
     sleep_between_launches: int = 5
 
     # Task Definition
-    input_path: Union[str, Iterable[str], None] = None
-    output_path: Union[str, Iterable[str], None] = None
-    mapper_path: Union[str, Iterable[str], None] = None
-    reducer_path: Union[str, Iterable[str], None] = None
+    input_path: Union[str, Sequence[str], None] = None
+    # Receiving an output path as a string will be used as a prefix (a host directory), where the actual outputs
+    # will be saved in files named output_1, output_2, etc., inside that host directory.
+    output_path: Union[str, Sequence[str], None] = None
+    mapper_path: Union[str, Sequence[str], None] = None
+    reducer_path: Union[str, Sequence[str], None] = None
 
     # Parallelism & Scheduling
-    number_of_mappers: Union[int, Iterable[int], None] = None
-    number_of_reducers: Union[int, Iterable[int], None] = None
-    map_vcores: Union[int, Iterable[int], None] = None
-    reduce_vcores: Union[int, Iterable[int], None] = None
-    application_manager_vcores: Union[int, Iterable[int], None] = None
-    shuffle_copies: Union[int, Iterable[int], None] = None
-    jvm_numtasks: Union[int, Iterable[int], None] = None
-    slowstart_completed_maps: Union[float, Iterable[float], None] = None
+    number_of_mappers: Union[int, Sequence[int], None] = None
+    number_of_reducers: Union[int, Sequence[int], None] = None
+    map_vcores: Union[int, Sequence[int], None] = None
+    reduce_vcores: Union[int, Sequence[int], None] = None
+    application_manager_vcores: Union[int, Sequence[int], None] = None
+    shuffle_copies: Union[int, Sequence[int], None] = None
+    jvm_numtasks: Union[int, Sequence[int], None] = None
+    slowstart_completed_maps: Union[float, Sequence[float], None] = None
 
     # Memory
-    map_memory_mb: Union[int, Iterable[int], None] = None
-    reduce_memory_mb: Union[int, Iterable[int], None] = None
-    application_manager_memory_mb: Union[int, Iterable[int], None] = None
-    sort_buffer_mb: Union[int, Iterable[int], None] = None
-    min_split_size: Union[int, Iterable[int], None] = None
-    max_split_size: Union[int, Iterable[int], None] = None
+    map_memory_mb: Union[int, Sequence[int], None] = None
+    reduce_memory_mb: Union[int, Sequence[int], None] = None
+    application_manager_memory_mb: Union[int, Sequence[int], None] = None
+    sort_buffer_mb: Union[int, Sequence[int], None] = None
+    min_split_size: Union[int, Sequence[int], None] = None
+    max_split_size: Union[int, Sequence[int], None] = None
 
     # Shuffle & Compression
-    io_sort_factor: Union[int, Iterable[int], None] = None
-    should_compress: Union[bool, Iterable[bool], None] = None
-    map_compress_codec: Union[CompressionCodec, Iterable[CompressionCodec], None] = None
+    io_sort_factor: Union[int, Sequence[int], None] = None
+    should_compress: Union[bool, Sequence[bool], None] = None
+    map_compress_codec: Union[CompressionCodec, Sequence[CompressionCodec], None] = None
 
     # Private fields
     _all_experiments_configs: List[HadoopJobConfig] = PrivateAttr()
@@ -92,19 +95,36 @@ class AutomaticExperimentsConfig(BaseModel):
 
         return user_inputs
 
+    @staticmethod
+    def normalize_output_path(output_paths: List[str], parameters_grid) -> List[str]:
+        number_of_combinations = math.prod(map(len, parameters_grid.values()))
+        if len(output_paths) == number_of_combinations:
+            return output_paths
+        elif len(output_paths) == 1:
+            output_path_prefix = output_paths[0]
+            return [f"{Path(output_path_prefix) / Path(f'output_{i + 1}')}" for i in range(number_of_combinations)]
+
+        raise ValueError(
+            f"Output path should consists a single value "
+            f"or a value for each combination of inputs ({number_of_combinations} in this case)"
+        )
+
     @model_validator(mode="after")
     def generate_experiments_configs(self) -> "AutomaticExperimentsConfig":
         """
         This function validates that all configuration combinations provided by the user are valid.
-        If they are, it saves all configurations as a list of'HadoopJobConfig' object that could be fetched later on.
+        If they are, it saves all configurations as a list of 'HadoopJobConfig' object that could be fetched later on.
         """
         self._all_experiments_configs = []
 
         parameters_grid = self.get_config_parameters_grid()
+        normalized_output_paths = parameters_grid.pop("output_path")
+        normalized_output_paths = self.normalize_output_path(normalized_output_paths, parameters_grid)
+
         keys = list(parameters_grid.keys())
-        for job_configuration_values in product(*parameters_grid.values()):
+        for job_configuration_values, output_path in zip(product(*parameters_grid.values()), normalized_output_paths):
             self._all_experiments_configs.append(
-                HadoopJobConfig.model_validate(dict(zip(keys, job_configuration_values)))
+                HadoopJobConfig.model_validate(dict(zip(keys, job_configuration_values), output_path=output_path))
             )
 
         return self
