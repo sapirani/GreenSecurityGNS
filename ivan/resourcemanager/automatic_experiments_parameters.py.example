@@ -6,6 +6,8 @@ from ivan.resourcemanager.jobs_configurator import AutomaticExperimentsConfig, E
 
 experiments_config = AutomaticExperimentsConfig(
     mode=ExperimentMode.SEQUENTIAL,
-    number_of_mappers=[1, 3],
+    sleep_between_launches=15,
+    number_of_mappers=range(1, 5),
     number_of_reducers=[1, 2],
+    input_path="/input"
 )
