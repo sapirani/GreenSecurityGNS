@@ -1,0 +1,11 @@
+from ivan.resourcemanager.consts import AutomaticExperimentsConfig, ExperimentMode
+
+# NOTE! it is highly recommended to install the Pydantic plugin for Pycharm (for autocompletion and typing)
+# Press shift+shift quickly, type 'Plugins' and press enter.
+# Inside the marketplace - search for 'Pydantic' and install
+
+experiments_config = AutomaticExperimentsConfig(
+    mode=ExperimentMode.SEQUENTIAL,
+    number_of_mappers=[50, 80],
+    number_of_reducers=[90, 88],
+)
