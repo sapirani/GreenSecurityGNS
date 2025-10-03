@@ -71,7 +71,7 @@ class AutomaticExperimentsConfig(BaseModel):
 
     @model_validator(mode="before") # noqa
     @classmethod
-    def normalize_inputs(cls, user_inputs: Dict[str, Any]) -> Dict[str, Any]:
+    def _normalize_inputs(cls, user_inputs: Dict[str, Any]) -> Dict[str, Any]:
         """
         This function coerce user inputs to be represented as lists, to ease the work later on
         (e.g., when performing a product of all fields' values to create all requested combinations of Hadoop jobs).
@@ -96,7 +96,7 @@ class AutomaticExperimentsConfig(BaseModel):
         return user_inputs
 
     @staticmethod
-    def normalize_output_path(output_paths: List[str], parameters_grid) -> List[str]:
+    def _normalize_output_path(output_paths: List[str], parameters_grid) -> List[str]:
         number_of_combinations = math.prod(map(len, parameters_grid.values()))
         if len(output_paths) == number_of_combinations:
             return output_paths
@@ -110,7 +110,7 @@ class AutomaticExperimentsConfig(BaseModel):
         )
 
     @model_validator(mode="after")
-    def generate_experiments_configs(self) -> "AutomaticExperimentsConfig":
+    def _generate_experiments_configs(self) -> "AutomaticExperimentsConfig":
         """
         This function validates that all configuration combinations provided by the user are valid.
         If they are, it saves all configurations as a list of 'HadoopJobConfig' object that could be fetched later on.
@@ -119,7 +119,7 @@ class AutomaticExperimentsConfig(BaseModel):
 
         parameters_grid = self.get_config_parameters_grid()
         normalized_output_paths = parameters_grid.pop("output_path")
-        normalized_output_paths = self.normalize_output_path(normalized_output_paths, parameters_grid)
+        normalized_output_paths = self._normalize_output_path(normalized_output_paths, parameters_grid)
 
         keys = list(parameters_grid.keys())
         for job_configuration_values, output_path in zip(product(*parameters_grid.values()), normalized_output_paths):
