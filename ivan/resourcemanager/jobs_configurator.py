@@ -22,6 +22,7 @@ class AutomaticExperimentsConfig(BaseModel):
     # Meta parameters
     mode: ExperimentMode = ExperimentMode.SEQUENTIAL
     sleep_between_launches: int = 5
+    print_configurations_only: bool = False
 
     # Task Definition
     input_path: Union[str, Sequence[str], None] = None
@@ -69,7 +70,7 @@ class AutomaticExperimentsConfig(BaseModel):
         # Only list, set, tuple, etc. should be considered as iterables in our case
         return isinstance(val, Iterable) and not isinstance(val, (str, dict, bytes))
 
-    @model_validator(mode="before") # noqa
+    @model_validator(mode="before")  # noqa
     @classmethod
     def _normalize_inputs(cls, user_inputs: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -86,10 +87,10 @@ class AutomaticExperimentsConfig(BaseModel):
             the value will be this list as-is.
         """
         for job_config_field_name, field in HadoopJobConfig.model_fields.items():
-            if cls._should_use_default(job_config_field_name, user_inputs):     # case 1
+            if cls._should_use_default(job_config_field_name, user_inputs):  # case 1
                 user_inputs[job_config_field_name] = [field.default]
-            else:   # user inserted values to this field
-                if not cls._is_iterable(user_inputs[job_config_field_name]):    # case 2
+            else:  # user inserted values to this field
+                if not cls._is_iterable(user_inputs[job_config_field_name]):  # case 2
                     # convert to a list containing one item only
                     user_inputs[job_config_field_name] = [user_inputs[job_config_field_name]]
 
@@ -148,6 +149,12 @@ class AutomaticExperimentsConfig(BaseModel):
 
     def all_experiments_configurations(self) -> Iterator[HadoopJobConfig]:
         return self._all_experiments_configs
+
+    def __str__(self):
+        return "\n\n".join(
+            f"********************************** Experiment {i} **********************************\n{experiment_config}"
+            for i, experiment_config in enumerate(self._all_experiments_configs)
+        )
 
     def __len__(self) -> int:
         return len(self._all_experiments_configs)
