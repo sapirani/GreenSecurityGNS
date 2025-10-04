@@ -47,7 +47,8 @@ class TriggerSender(BaseModel):
         ]
 
         if self.session_id_prefix or session_id:
-            cmd.extend(["--session_id", f"{self.session_id_prefix}-{session_id}"])
+            joiner = "-" if self.session_id_prefix and session_id else ""
+            cmd.extend(["--session_id", f"{self.session_id_prefix}{joiner}{session_id}"])
 
         cmd.extend(["--receivers_addresses", ",".join(self.get_receivers_addresses())])
 
