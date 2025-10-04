@@ -15,6 +15,9 @@ RUN green_security_venv/bin/pip3 install -r requirements/container_requirements.
 
 COPY . .
 
+# TODO: ENTER THE VENV
+RUN source /green_security_measurements/green_security_venv/bin/activate
+
 WORKDIR /green_security_measurements/Scanner
 
 VOLUME ["/green_security_measurements"]
