@@ -2,7 +2,7 @@ import math
 from enum import Enum
 from itertools import product
 from pathlib import Path
-from typing import List, Iterator, Dict, Any, Union, Iterable, Sequence
+from typing import List, Iterator, Dict, Any, Union, Iterable, Sequence, Set
 from pydantic import BaseModel, model_validator, PrivateAttr, Field
 from hadoop_job_config import CompressionCodec, HadoopJobConfig
 
@@ -18,6 +18,10 @@ class AutomaticExperimentsConfig(BaseModel):
     It enables configuring multiple combinations for each field to establish multiple jos configurations easily.
     If a field's value stays None, the default value for the field will be selected.
     """
+
+    model_config = {
+        "extra": "forbid"  # Reject unexpected fields
+    }
 
     # Meta parameters
     mode: ExperimentMode = ExperimentMode.SEQUENTIAL
@@ -57,44 +61,12 @@ class AutomaticExperimentsConfig(BaseModel):
 
     # Private fields
     _all_experiments_configs: List[HadoopJobConfig] = PrivateAttr()
-
-    @staticmethod
-    def _should_use_default(job_config_field_name: str, user_inputs: Dict[str, Any]) -> bool:
-        """
-        :return: True if the user did not insert a value to the field (or chose a None value)
-        """
-        return job_config_field_name not in user_inputs or user_inputs[job_config_field_name] is None
+    _user_configured_fields: Set[str] = PrivateAttr()
 
     @staticmethod
     def _is_iterable(val: Any) -> bool:
         # Only list, set, tuple, etc. should be considered as iterables in our case
         return isinstance(val, Iterable) and not isinstance(val, (str, dict, bytes))
-
-    @model_validator(mode="before")  # noqa
-    @classmethod
-    def _normalize_inputs(cls, user_inputs: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        This function coerce user inputs to be represented as lists, to ease the work later on
-        (e.g., when performing a product of all fields' values to create all requested combinations of Hadoop jobs).
-
-        :return: a dictionary consisting the exact keys as 'HadoopJobConfig'.
-        The value of each item is will be as follows:
-        1. if the user did not insert a value to the field (or chose a None value):
-            a list containing one item which is the default value for that field.
-        2. if the user inserted a single value which is not a list (e.g., 3):
-             a list containing one item, which is the user-requested item (e.g., 3 had turned into [3])
-        3. if the user inserted a list of values:
-            the value will be this list as-is.
-        """
-        for job_config_field_name, field in HadoopJobConfig.model_fields.items():
-            if cls._should_use_default(job_config_field_name, user_inputs):  # case 1
-                user_inputs[job_config_field_name] = [field.default]
-            else:  # user inserted values to this field
-                if not cls._is_iterable(user_inputs[job_config_field_name]):  # case 2
-                    # convert to a list containing one item only
-                    user_inputs[job_config_field_name] = [user_inputs[job_config_field_name]]
-
-        return user_inputs
 
     @staticmethod
     def _normalize_output_path(output_paths: List[str], parameters_grid) -> List[str]:
@@ -110,8 +82,26 @@ class AutomaticExperimentsConfig(BaseModel):
             f"or a value for each combination of inputs ({number_of_combinations} in this case)"
         )
 
-    @model_validator(mode="after")
-    def _generate_experiments_configs(self) -> "AutomaticExperimentsConfig":
+    def _should_use_default(self, job_config_field_name: str) -> bool:
+        """
+        :return: True if the user did not insert a value to the field (or chose a None value)
+        """
+        return job_config_field_name not in self._user_configured_fields or getattr(self, job_config_field_name) is None
+
+    def _normalize_fields(self):
+        # TODO: ADD DOCUMENTATION
+        self._user_configured_fields = self.__pydantic_fields_set__.copy()
+        for job_config_field_name, field in HadoopJobConfig.model_fields.items():
+            self.model_fields[job_config_field_name] = Field(field.default, alias=field.alias)
+            if self._should_use_default(job_config_field_name):  # case 1
+                setattr(self, job_config_field_name, [field.default])
+            else:  # user inserted values to this field
+                field_value = getattr(self, job_config_field_name)
+                if not self._is_iterable(field_value):  # case 2
+                    # convert to a list containing one item only
+                    setattr(self, job_config_field_name, [field_value])
+
+    def _generate_experiments_configs(self):
         """
         This function validates that all configuration combinations provided by the user are valid.
         If they are, it saves all configurations as a list of 'HadoopJobConfig' object that could be fetched later on.
@@ -128,6 +118,11 @@ class AutomaticExperimentsConfig(BaseModel):
                 HadoopJobConfig.model_validate(dict(zip(keys, job_configuration_values), output_path=output_path))
             )
 
+    @model_validator(mode="after")
+    def _run_all_validators(self):
+        self._normalize_fields()
+        # TODO: MAYBE PERFORM NORMALIZE OUTPUT PATH SEPARATELY
+        self._generate_experiments_configs()
         return self
 
     def get_config_parameters_grid(self) -> Dict[str, List[Any]]:
@@ -150,9 +145,50 @@ class AutomaticExperimentsConfig(BaseModel):
     def all_experiments_configurations(self) -> Iterator[HadoopJobConfig]:
         return self._all_experiments_configs
 
+    def _core_fields_configured_by_user(self) -> Set[str]:
+        return self._user_configured_fields.intersection(HadoopJobConfig.model_fields.keys())
+
+    def user_selected_fields(self, experiment_config: HadoopJobConfig) -> Dict[str, Any]:
+        """
+        Each dictionary represents the fields that were modified by the user.
+        I.e., each dictionary contains the shortcut names of the modified fields and their selected values by the user.
+        """
+        return {
+            field_name: getattr(experiment_config, field_name)
+            for field_name in self._core_fields_configured_by_user()
+        }
+
+    def _dictionary_formatting(self, dictionary: Dict[str, Any]) -> str:
+        def add_alias(key: str) -> str:
+            alias = self.model_fields[key].alias
+            return f"({alias})" if alias and alias != key else ""
+
+        def get_longest_key_size():
+            return max(len(key) + len(add_alias(key)) for key in dictionary)
+
+        longest_key_size = get_longest_key_size()
+        first_column_width = longest_key_size + 6  # padding
+
+        # Header row
+        header = (
+            f"{'Field'.rjust(first_column_width // 2).ljust(first_column_width)}| Value\n"
+            f"{'-' * first_column_width}|{'-' * 10}"
+        )
+
+        # Body rows
+        rows = [
+            f"  {(key.ljust(first_column_width - 8) + add_alias(key)).ljust(first_column_width - 2)}| {value}"
+            for key, value in sorted(dictionary.items())
+        ]
+
+        return header + "\n" + "\n".join(rows)
+
     def __str__(self):
         return "\n\n".join(
-            f"********************************** Experiment {i} **********************************\n{experiment_config}"
+            f"************************************ Experiment {i + 1} ************************************\n"
+            f"{experiment_config}\n"
+            f"Modified by the user:\n\n"
+            f"{self._dictionary_formatting(self.user_selected_fields(experiment_config))}"
             for i, experiment_config in enumerate(self._all_experiments_configs)
         )
 

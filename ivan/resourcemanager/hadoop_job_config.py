@@ -87,7 +87,8 @@ class HadoopJobConfig(BaseModel):
     # Support model validation with aliases
     model_config = {
         "validate_by_name": True,
-        "validate_by_alias": True
+        "validate_by_alias": True,
+        "extra": "forbid"  # Reject unexpected fields
     }
 
     # Task Definition

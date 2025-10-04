@@ -7,7 +7,7 @@ from trigger_sender import TriggerSender
 
 experiments_config = AutomaticExperimentsConfig(
     mode=ExperimentMode.SEQUENTIAL,
-    sleep_between_launches=15,
+    sleep_between_launches=5,
     number_of_mappers=range(1, 5),
     number_of_reducers=[1, 2],
     input_path="/input"

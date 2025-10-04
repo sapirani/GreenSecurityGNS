@@ -1,9 +1,9 @@
 import os
 import subprocess
 from enum import Enum
-from typing import List, Optional
-
+from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field, PrivateAttr
+from hadoop_job_config import HadoopJobConfig
 
 
 class TriggerAction(str, Enum):
@@ -13,7 +13,7 @@ class TriggerAction(str, Enum):
 
 
 class TriggerSender(BaseModel):
-    measurement_session_id: Optional[str] = Field(None, description="Control the session id sent to the scanner")
+    session_id_prefix: str = Field("", description="Control the session id sent to the scanner")
     number_of_datanodes: int = Field(3, gt=0, description="number of hadoop_workers")
 
     resource_manager_url: str = "resourcemanager-1:65432"
@@ -38,7 +38,7 @@ class TriggerSender(BaseModel):
         return [self.resource_manager_url, self.namenode_url, self.history_server_url, *self.datanodes_urls]
 
     # TODO: remove function when unifying repos
-    def _build_cmd(self, action: TriggerAction):
+    def _build_cmd(self, action: TriggerAction, *, session_id: Optional[str] = None):
         cmd = [
             self._python_path,
             "-m",
@@ -46,24 +46,33 @@ class TriggerSender(BaseModel):
             action,
         ]
 
-        if self.measurement_session_id:
-            cmd.extend(["--session_id", self.measurement_session_id])
+        if self.session_id_prefix or session_id:
+            cmd.extend(["--session_id", f"{self.session_id_prefix}-{session_id}"])
 
         cmd.extend(["--receivers_addresses", ",".join(self.get_receivers_addresses())])
 
         return cmd
 
+    @staticmethod
+    def generate_session_id(*, generate_session_from: Dict[str, Any]) -> str:
+        return "-".join(
+            [
+                f"{HadoopJobConfig.model_fields[field_name].alias}_{field_value}"
+                for field_name, field_value in generate_session_from.items()
+            ]
+        )
+
     # TODO: unify this functionality with scanner_trigger from the other repo
-    def _run_trigger(self, action: TriggerAction):
+    def _run_trigger(self, action: TriggerAction, *, session_id: Optional[str] = None):
         subprocess.run(
-            self._build_cmd(action),
+            self._build_cmd(action, session_id=session_id),
             env={**os.environ, **self._env},
             check=True
         )
 
     # TODO: unify this functionality with scanner_trigger from the other repo
-    def start_measurement(self):
-        self._run_trigger(TriggerAction.START_MEASUREMENT)
+    def start_measurement(self, *, session_id: Optional[str] = None):
+        self._run_trigger(TriggerAction.START_MEASUREMENT, session_id=session_id)
 
     # TODO: unify this functionality with scanner_trigger from the other repo
     def stop_measurement(self):
