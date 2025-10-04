@@ -1,8 +1,9 @@
-from ivan.resourcemanager.jobs_configurator import AutomaticExperimentsConfig, ExperimentMode
+from jobs_configurator import AutomaticExperimentsConfig, ExperimentMode
 
 # NOTE! it is highly recommended to install the Pydantic plugin for Pycharm (for autocompletion and typing)
 # Press shift+shift quickly, type 'Plugins' and press enter.
 # Inside the marketplace - search for 'Pydantic' and install
+from trigger_sender import TriggerSender
 
 experiments_config = AutomaticExperimentsConfig(
     mode=ExperimentMode.SEQUENTIAL,
@@ -11,3 +12,6 @@ experiments_config = AutomaticExperimentsConfig(
     number_of_reducers=[1, 2],
     input_path="/input"
 )
+
+# You may change scanner trigger configuration (such as hosts, ports, etc.) here
+scanner_trigger_sender = TriggerSender()

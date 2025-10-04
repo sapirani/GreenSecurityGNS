@@ -1,7 +1,8 @@
 import subprocess
 from time import sleep
-from ivan.resourcemanager.automatic_experiments_parameters import experiments_config, scanner_trigger_sender
-from ivan.resourcemanager.jobs_configurator import ExperimentMode
+
+from automatic_experiments_parameters import experiments_config, scanner_trigger_sender
+from jobs_configurator import ExperimentMode
 import logging
 logger = logging.getLogger(__name__)
 

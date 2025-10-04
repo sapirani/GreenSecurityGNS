@@ -4,7 +4,7 @@ from itertools import product
 from pathlib import Path
 from typing import List, Iterator, Dict, Any, Union, Iterable, Sequence
 from pydantic import BaseModel, model_validator, PrivateAttr, Field
-from ivan.resourcemanager.hadoop_job_config import CompressionCodec, HadoopJobConfig
+from hadoop_job_config import CompressionCodec, HadoopJobConfig
 
 
 class ExperimentMode(str, Enum):

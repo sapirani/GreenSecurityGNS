@@ -12,6 +12,7 @@ COPY slow_mapper.py /home
 COPY reducer.py /home
 COPY slow_reducer.py /home
 
+# TODO: UPDATE DOCKERFILE WITH THE NEW SCRIPTS FOR RUNNING AUTOMATIC EXPERIMENTS
 WORKDIR /home
 COPY run_task_with_scanner.sh .
 COPY run_task_without_scanner.sh .
