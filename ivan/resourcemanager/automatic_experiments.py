@@ -33,12 +33,14 @@ def handle_sequential_mode():
 
     try:
         for experiment_config in experiments_config.all_experiments_configurations():
+            user_selected_fields = experiments_config.user_selected_fields(experiment_config)
             session_id = TriggerSender.generate_session_id(
-                generate_session_from=experiments_config.user_selected_fields(experiment_config)
+                generate_session_from=user_selected_fields
             )
             scanner_trigger_sender.start_measurement(session_id=session_id)
             try:
-                print(f"Session ID: {session_id}, running a job\n{experiment_config}")
+                print(f"Session ID: {session_id}, running a job\n{experiment_config}\n")
+                print(experiments_config.format_user_selection(user_selected_fields))
                 subprocess.run(experiment_config.get_hadoop_job_args(), check=True)
             except subprocess.CalledProcessError as e:
                 logger.warning(

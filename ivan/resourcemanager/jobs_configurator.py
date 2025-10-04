@@ -158,19 +158,21 @@ class AutomaticExperimentsConfig(BaseModel):
             for field_name in self._core_fields_configured_by_user()
         }
 
-    def _dictionary_formatting(self, dictionary: Dict[str, Any]) -> str:
+    # TODO: MAYBE THIS FUNCTIONALITY SHOULD BE INSIDE THE HADOOP JOB CONFIG CLASS
+    def format_user_selection(self, user_selection: Dict[str, Any]) -> str:
         def add_alias(key: str) -> str:
             alias = self.model_fields[key].alias
             return f"({alias})" if alias and alias != key else ""
 
         def get_longest_key_size():
-            return max(len(key) + len(add_alias(key)) for key in dictionary)
+            return max(len(key) + len(add_alias(key)) for key in user_selection)
 
         longest_key_size = get_longest_key_size()
         first_column_width = longest_key_size + 6  # padding
 
         # Header row
         header = (
+            "Modified by the user:\n\n"
             f"{'Field'.rjust(first_column_width // 2).ljust(first_column_width)}| Value\n"
             f"{'-' * first_column_width}|{'-' * 10}"
         )
@@ -178,7 +180,7 @@ class AutomaticExperimentsConfig(BaseModel):
         # Body rows
         rows = [
             f"  {(key.ljust(first_column_width - 8) + add_alias(key)).ljust(first_column_width - 2)}| {value}"
-            for key, value in sorted(dictionary.items())
+            for key, value in sorted(user_selection.items())
         ]
 
         return header + "\n" + "\n".join(rows)
@@ -187,8 +189,7 @@ class AutomaticExperimentsConfig(BaseModel):
         return "\n\n".join(
             f"************************************ Experiment {i + 1} ************************************\n"
             f"{experiment_config}\n"
-            f"Modified by the user:\n\n"
-            f"{self._dictionary_formatting(self.user_selected_fields(experiment_config))}"
+            f"{self.format_user_selection(self.user_selected_fields(experiment_config))}"
             for i, experiment_config in enumerate(self._all_experiments_configs)
         )
 
