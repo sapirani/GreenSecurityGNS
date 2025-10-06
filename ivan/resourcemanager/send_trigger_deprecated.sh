@@ -9,9 +9,11 @@ print_help() {
 Usage: $0 ACTION [datanodes] [measurement_session_id] [OPTIONS]
 ACTION:
   start_measurement | stop_measurement | stop_program
+
 Positional arguments:
   datanodes                    Number of datanodes (default: 3)
   measurement_session_id       Optional session ID
+
 Options:
   -d, --datanodes N                Number of datanodes
   -i, --measurement_session_id ID Measurement session ID

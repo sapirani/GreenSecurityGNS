@@ -85,5 +85,3 @@ class TriggerSender(BaseModel):
     # TODO: unify this functionality with scanner_trigger from the other repo
     def stop_program(self):
         self._run_trigger(TriggerAction.STOP_PROGRAM)
-
-
