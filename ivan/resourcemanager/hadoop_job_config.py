@@ -4,7 +4,7 @@ import shlex
 from argparse import _ArgumentGroup
 from enum import Enum
 from pathlib import Path
-from typing import List, Optional, Type
+from typing import List, Optional, Type, Dict, Any
 import re
 
 from pydantic import BaseModel, Field, model_validator
@@ -88,7 +88,6 @@ class HadoopJobConfig(BaseModel):
     model_config = {
         "validate_by_name": True,
         "validate_by_alias": True,
-        "extra": "forbid"  # Reject unexpected fields
     }
 
     # Task Definition
@@ -397,6 +396,33 @@ class HadoopJobConfig(BaseModel):
         job_str = str(self)
         cleaned_cmd = re.sub(r"\s+", " ", job_str.strip())
         return shlex.split(cleaned_cmd)
+
+    @classmethod
+    def format_user_selection(cls, user_selection: Dict[str, Any]) -> str:
+        def add_alias(key: str) -> str:
+            alias = cls.model_fields[key].alias
+            return f"({alias})" if alias and alias != key else ""
+
+        def get_longest_key_size():
+            return max(len(key) + len(add_alias(key)) for key in user_selection)
+
+        longest_key_size = get_longest_key_size()
+        first_column_width = longest_key_size + 6  # padding
+
+        # Header row
+        header = (
+            "Modified by the user:\n\n"
+            f"{'Field'.rjust(first_column_width // 2).ljust(first_column_width)}| Value\n"
+            f"{'-' * first_column_width}|{'-' * 10}"
+        )
+
+        # Body rows
+        rows = [
+            f"  {(key.ljust(first_column_width - 8) + add_alias(key)).ljust(first_column_width - 2)}| {value}"
+            for key, value in sorted(user_selection.items())
+        ]
+
+        return header + "\n" + "\n".join(rows)
 
     def __str__(self) -> str:
         return f"""

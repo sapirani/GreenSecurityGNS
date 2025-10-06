@@ -20,6 +20,7 @@ def setup_logger():
 # TODO: ADD AN OPTION TO REMOVE THE OUTPUT DIRECTORIES ENTIRELY AT THE END OF THE MEASUREMENT SESSION
 # TODO: ENSURE THAT THE OUTPUT DIRECTORIES DO NOT EXIST BEFORE STARTING MEASUREMENTS (PROBABLY USING PYDANTIC VALIDATOR)
 # TODO: SUPPORT A SHARED SESSION-ID IN THE CASE OF SEQUENTIAL MODE
+# TODO: ALLOW RANDOM SESSION IDS IN SEQUENTIAL MODE (DO NOT NECESSARILY GENERATE FROM SHORTCUTS)
 
 
 def handle_sequential_mode():
@@ -40,11 +41,11 @@ def handle_sequential_mode():
             scanner_trigger_sender.start_measurement(session_id=session_id)
             try:
                 print(f"Session ID: {session_id}, running a job\n{experiment_config}\n")
-                print(experiments_config.format_user_selection(user_selected_fields))
+                print(experiment_config.format_user_selection(user_selected_fields))
                 subprocess.run(experiment_config.get_hadoop_job_args(), check=True)
             except subprocess.CalledProcessError as e:
                 logger.warning(
-                    f"The execution Hadoop job encountered an error.\n"
+                    f"The execution of a Hadoop job encountered an error.\n"
                     f"The job:\n{experiment_config}\nThe error: {e}\n"
                 )
                 executed_successfully = False
@@ -83,7 +84,7 @@ def handle_parallel_mode():
                 raise
             sleep(experiments_config.sleep_between_launches)
 
-        # Note: we might think of an enhanced technique for waiting processes as they terminate (not necessary for now).
+        # TODO: we might think of an enhanced technique for waiting processes as they terminate (not necessary for now).
         for experiment_config, job_process in jobs_processes:
             job_return_code = job_process.wait()
             if job_return_code != 0:
