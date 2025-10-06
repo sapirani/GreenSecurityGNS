@@ -161,7 +161,7 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
-        "s", "--shared_session_id",
+        "-s", "--shared_session_id",
         type=str,
         default=None,
         help="A single session id for all experiments. By default, in sequential mode, each experiment defines"
