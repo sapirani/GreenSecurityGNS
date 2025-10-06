@@ -14,14 +14,13 @@ COPY slow_mapper.py /home
 COPY reducer.py /home
 COPY slow_reducer.py /home
 
-# TODO: UPDATE DOCKERFILE WITH THE NEW SCRIPTS FOR RUNNING AUTOMATIC EXPERIMENTS
 WORKDIR /home
-COPY run_task_with_scanner.sh .
-COPY run_task_without_scanner.sh .
-COPY send_trigger.sh .
-RUN chmod +x run_task_with_scanner.sh
-RUN chmod +x run_task_without_scanner.sh
-RUN chmod +x send_trigger.sh
+COPY automatic_experiments_parameters.py.example automatic_experiments_parameters.py
+COPY hadoop_job_config.py.sh .
+COPY jobs_configurator.py .
+COPY run_task.py .
+COPY trigger_sender.py .
+COPY send_trigger_deprecated.sh .
 
 WORKDIR /green_security_measurements/Scanner
 

@@ -10,7 +10,10 @@ experiments_config = AutomaticExperimentsConfig(
     sleep_between_launches=5,
     number_of_mappers=range(1, 5),
     number_of_reducers=[1, 2],
-    input_path="/input"
+    input_path="/input",
+    map_memory_mb=32,
+    reduce_memory_mb=32,
+    application_manager_memory_mb=32
 )
 
 # You may change scanner trigger configuration (such as hosts, ports, etc.) here
