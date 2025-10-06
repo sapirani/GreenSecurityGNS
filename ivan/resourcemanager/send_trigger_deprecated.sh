@@ -7,6 +7,7 @@ measurement_session_id=""
 print_help() {
   cat <<EOF
 Usage: $0 ACTION [datanodes] [measurement_session_id] [OPTIONS]
+
 ACTION:
   start_measurement | stop_measurement | stop_program
 
