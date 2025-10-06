@@ -5,7 +5,7 @@ from itertools import product
 from pathlib import Path
 from typing import List, Iterator, Dict, Any, Union, Iterable, Sequence, Set
 from pydantic import BaseModel, model_validator, PrivateAttr
-from hadoop_job_config import CompressionCodec, HadoopJobConfig
+from hadoop_job_config import CompressionCodec, HadoopJobConfig, HDFS_NAMENODE
 
 
 class ExperimentMode(str, Enum):
@@ -189,7 +189,7 @@ class AutomaticExperimentsConfig(BaseModel):
 
     def remove_outputs(self):
         for path in self.output_path:
-            shutil.rmtree(path, ignore_errors=True)
+            shutil.rmtree(Path(HDFS_NAMENODE) / Path(path), ignore_errors=True)
 
     def __str__(self):
         return "\n\n".join(

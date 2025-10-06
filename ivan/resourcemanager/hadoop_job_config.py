@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field, model_validator, field_validator
 
 GENERAL_GROUP = "General"
 HUMAN_READABLE_KEY = "human_readable"
+HDFS_NAMENODE = "hdfs://namenode-1:9000"
 
 units = {
     "B": 1,
@@ -283,7 +284,7 @@ class HadoopJobConfig(BaseModel):
 
     @field_validator("output_path", mode="after")
     def ensure_no_output_path(cls, output_path: str) -> str:
-        if os.path.exists(output_path):
+        if os.path.exists(Path(HDFS_NAMENODE) / Path(output_path)):
             raise FileExistsError(f"Output path already exists: {output_path}")
 
         return output_path
@@ -453,8 +454,8 @@ hadoop jar /opt/hadoop-3.4.1/share/hadoop/tools/lib/hadoop-streaming-3.4.1.jar
   -D mapreduce.job.jvm.numtasks={self.jvm_numtasks}
   -D mapreduce.job.reduce.slowstart.completedmaps={self.slowstart_completed_maps}
 
-  -input hdfs://namenode-1:9000{self.input_path}
-  -output hdfs://namenode-1:9000{self.output_path}
+  -input {HDFS_NAMENODE}{self.input_path}
+  -output {HDFS_NAMENODE}{self.output_path}
   -mapper {self.mapper_path}
   -reducer {self.reducer_path}
   -file {self.mapper_path}
