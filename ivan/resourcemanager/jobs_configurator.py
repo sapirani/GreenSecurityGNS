@@ -188,13 +188,13 @@ class AutomaticExperimentsConfig(BaseModel):
         }
 
     def remove_outputs(self) -> bool:
-        result = 0
+        success = True
         for path in self.output_path:
-            current_result = subprocess.run(["hdfs", "dfs", "-rm", "-r", str(path)])
-            if current_result != 0:
+            result = subprocess.run(["hdfs", "dfs", "-rm", "-r", "-f", str(path)])
+            if result.returncode != 0:
                 print(f"Could not remove {path}")
-                result = current_result
-        return result.returncode == 0
+                success = False
+        return success
 
     def __str__(self):
         return "\n\n".join(
