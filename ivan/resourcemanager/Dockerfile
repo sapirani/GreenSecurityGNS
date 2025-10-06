@@ -16,7 +16,7 @@ COPY slow_reducer.py /home
 
 WORKDIR /home
 COPY automatic_experiments_parameters.py.example automatic_experiments_parameters.py
-COPY hadoop_job_config.py.sh .
+COPY hadoop_job_config.py .
 COPY jobs_configurator.py .
 COPY run_task.py .
 COPY trigger_sender.py .
