@@ -1,9 +1,10 @@
 import math
+import shutil
 from enum import Enum
 from itertools import product
 from pathlib import Path
 from typing import List, Iterator, Dict, Any, Union, Iterable, Sequence, Set
-from pydantic import BaseModel, model_validator, PrivateAttr, Field
+from pydantic import BaseModel, model_validator, PrivateAttr
 from hadoop_job_config import CompressionCodec, HadoopJobConfig
 
 
@@ -26,7 +27,6 @@ class AutomaticExperimentsConfig(BaseModel):
     # Meta parameters
     mode: ExperimentMode = ExperimentMode.SEQUENTIAL
     sleep_between_launches: int = 5
-    print_configurations_only: bool = False
 
     # Task Definition
     input_path: Union[str, Sequence[str], None] = None
@@ -186,6 +186,10 @@ class AutomaticExperimentsConfig(BaseModel):
             field_name: getattr(experiment_config, field_name)
             for field_name in self._core_fields_configured_by_user()
         }
+
+    def remove_outputs(self):
+        for path in self.output_path:
+            shutil.rmtree(path, ignore_errors=True)
 
     def __str__(self):
         return "\n\n".join(

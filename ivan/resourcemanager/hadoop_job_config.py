@@ -1,5 +1,6 @@
 import argparse
 import inspect
+import os.path
 import shlex
 from argparse import _ArgumentGroup
 from enum import Enum
@@ -7,7 +8,7 @@ from pathlib import Path
 from typing import List, Optional, Type, Dict, Any
 import re
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, field_validator
 
 GENERAL_GROUP = "General"
 HUMAN_READABLE_KEY = "human_readable"
@@ -280,6 +281,13 @@ class HadoopJobConfig(BaseModel):
             )
         return self
 
+    @field_validator("output_path", mode="after")
+    def ensure_no_output_path(cls, output_path: str) -> str:
+        if os.path.exists(output_path):
+            raise FileExistsError(f"Output path already exists: {output_path}")
+
+        return output_path
+
     @classmethod
     def from_argparse(cls, args: argparse.Namespace) -> "HadoopJobConfig":
         return cls.model_validate(vars(args).copy())
@@ -357,7 +365,7 @@ class HadoopJobConfig(BaseModel):
         This function uses the defaults defined in each field as the default values in the argparse
         (instance values are not taken in consideration).
         """
-        parser = argparse.  ArgumentParser(description="A Python wrapper for Hadoop job configuration")
+        parser = argparse.ArgumentParser(description="A Python wrapper for Hadoop job configuration")
 
         groups = {}
         for name, field in cls.model_fields.items():
