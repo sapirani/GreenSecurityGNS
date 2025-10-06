@@ -38,7 +38,8 @@ def handle_sequential_mode(shared_session_id: Optional[str]):
         scanner_trigger_sender.start_measurement(session_id=shared_session_id)
 
     executed_successfully = True
-    for experiment_config in experiments_config.all_experiments_configurations():
+    all_experiment_configurations = experiments_config.all_experiments_configurations()
+    for experiment_index, experiment_config in enumerate(all_experiment_configurations):
         user_selected_fields = experiments_config.user_selected_fields(experiment_config)
 
         session_id = None
@@ -52,7 +53,10 @@ def handle_sequential_mode(shared_session_id: Optional[str]):
 
         # run experiments
         try:
-            print(f"Running a new job:\n{experiment_config}\n")
+            print(
+                f"Running a new job ({experiment_index + 1} / {len(all_experiment_configurations)}):\n"
+                f"{experiment_config}\n"
+            )
             print(experiment_config.format_user_selection(user_selected_fields))
 
             subprocess.run(experiment_config.get_hadoop_job_args(), check=True)
@@ -90,8 +94,17 @@ def handle_parallel_mode(shared_session_id: Optional[str]):
     scanner_trigger_sender.start_measurement(session_id=shared_session_id)
     executed_successfully = True
 
-    for experiment_config in experiments_config.all_experiments_configurations():
+    all_experiment_configurations = experiments_config.all_experiments_configurations()
+
+    for experiment_index, experiment_config in enumerate(all_experiment_configurations):
         try:
+            user_selected_fields = experiments_config.user_selected_fields(experiment_config)
+            print(
+                f"Running a new job ({experiment_index + 1} / {len(all_experiment_configurations)}):\n"
+                f"{experiment_config}\n"
+            )
+            print(experiment_config.format_user_selection(user_selected_fields))
+
             jobs_processes.append((experiment_config, subprocess.Popen(experiment_config.get_hadoop_job_args())))
         except FileNotFoundError:
             logger.error("It seems like Hadoop is not installed on this device")
@@ -110,7 +123,7 @@ def handle_parallel_mode(shared_session_id: Optional[str]):
                 f"Job configuration:\n{experiment_config}"
             )
 
-    print(f"Terminating resource measurements. {'Session ID:' + shared_session_id if shared_session_id else '' }")
+    print(f"Terminating resource measurements. {'Session ID:' + shared_session_id if shared_session_id else ''}")
     scanner_trigger_sender.stop_measurement()
     return executed_successfully
 
