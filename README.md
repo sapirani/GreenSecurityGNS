@@ -73,33 +73,22 @@ After finishing to define the parallel task, exit the namenode container.
 Now, enter the resourcemanager node.
 Run the command 
 
-`/home/run_task_with_scanner.sh` 
+`cd /home`
 
-or the command 
+Change the tasks' configuration inside (press 'i' to insert, then ':wq' to save, or ':q!' tp quit)
+`vim automatic_experiments_parameters.py`
 
-`/home/run_task_without_scanner.sh` 
+Run the tasks
+`python3 automatic_experiments.py`
 
-based on whether we want to run the scanner code during the parallel task.
-The parameter n represents the number of additional datanodes that are connected to the network.
+Or, run a single task without resource measurement code (i.e., the scanner):
+`python3 run_task.py`
 
-#### Available flags for `/home/run_task_with_scanner.sh`
-<pre>
- 1. -d, --datanodes                    Number of datanodes (default: 3)
- 2. -i, --measurement_session_id       Optional session ID (default: random human-readable ID)
- 3. -m, --mappers                      Number of mappers (default: datanodes)
- 4. -r, --reducers                     Number of reducers (default: datanodes)
- 5. -h, --help                         Show help message
-</pre>
 
-#### Available flags for `/home/run_task_without_scanner.sh`
-<pre>
-1.  -m, --mappers                      Number of mappers (default: 3)
-2.  -r, --reducers                     Number of reducers (default: 3)
-3.  -h, --help                         Shows help message
-</pre>
-   
-Note: you may send parameters by order without mentioning the name of the flag (for example, without writing -d or --datanodes).
-You may choose a subset of flags, and the others will receive the default value.
+#### Note!
+it is highly recommended to install the Pydantic plugin for Pycharm (for autocompletion and typing)
+Press shift+shift quickly, type 'Plugins' and press enter.
+Inside the marketplace - search for 'Pydantic' and install
 
 ### Collect results
 After the task is done, you can go back to the terminal and enter the ivan folder. 
