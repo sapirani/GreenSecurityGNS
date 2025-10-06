@@ -136,7 +136,7 @@ def run_tasks(mode: ExperimentMode, should_keep_output_directories: bool, shared
         elif mode == ExperimentMode.PARALLEL:
             executed_successfully = handle_parallel_mode(shared_session_id)
 
-        print(f"\nFinished automatic experiments {'successfully' if executed_successfully else 'unsuccessfully'}")
+        print(f"\nFinished automatic experiments {'successfully' if executed_successfully else 'unsuccessfully'}\n")
 
     # Terminate the measurements no matter what (even if the user pressed CTRL+C)
     finally:
