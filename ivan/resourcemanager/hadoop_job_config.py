@@ -1,7 +1,7 @@
 import argparse
 import inspect
-import os.path
 import shlex
+import subprocess
 from argparse import _ArgumentGroup
 from enum import Enum
 from pathlib import Path
@@ -284,7 +284,7 @@ class HadoopJobConfig(BaseModel):
 
     @field_validator("output_path", mode="after")
     def ensure_no_output_path(cls, output_path: str) -> str:
-        if os.path.exists(Path(HDFS_NAMENODE) / Path(output_path)):
+        if cls.hdfs_path_exists(Path(HDFS_NAMENODE) / Path(output_path)):
             raise FileExistsError(f"Output path already exists: {output_path}")
 
         return output_path
@@ -358,6 +358,15 @@ class HadoopJobConfig(BaseModel):
     @staticmethod
     def _is_human_readable_argument(metadata) -> bool:
         return metadata.get(HUMAN_READABLE_KEY, False)
+
+    @staticmethod
+    def hdfs_path_exists(path: Path) -> bool:
+        result = subprocess.run(
+            ["hdfs", "dfs", "-test", "-e", str(path)],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        return result.returncode == 0
 
     @classmethod
     def to_argparse(cls) -> argparse.ArgumentParser:

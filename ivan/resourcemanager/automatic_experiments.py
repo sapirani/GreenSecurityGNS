@@ -143,9 +143,10 @@ def run_tasks(mode: ExperimentMode, should_keep_output_directories: bool, shared
         try:
             scanner_trigger_sender.stop_measurement()
             if not should_keep_output_directories:
-                experiments_config.remove_outputs()
-        except Exception:
-            logger.critical("An unexpected error occurred upon stopping measurements")
+                if not experiments_config.remove_outputs():
+                    logger.warning("There was an error while removing outputs")
+        except Exception as e:
+            logger.critical(f"An unexpected error occurred upon stopping measurements: {e}")
 
 
 def main(print_configurations_only: bool, should_keep_output_directories: bool, shared_session_id: Optional[str]):

@@ -1,5 +1,5 @@
 import math
-import shutil
+import subprocess
 from enum import Enum
 from itertools import product
 from pathlib import Path
@@ -187,9 +187,13 @@ class AutomaticExperimentsConfig(BaseModel):
             for field_name in self._core_fields_configured_by_user()
         }
 
-    def remove_outputs(self):
+    def remove_outputs(self) -> bool:
+        result = 0
         for path in self.output_path:
-            shutil.rmtree(Path(HDFS_NAMENODE) / Path(path), ignore_errors=True)
+            current_result = subprocess.run(["hdfs", "dfs", "-rm", "-r", str(path)])
+            print(f"Could not remove {path}")
+            result = result or current_result
+        return result.returncode == 0
 
     def __str__(self):
         return "\n\n".join(
