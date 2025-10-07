@@ -1,3 +1,4 @@
+import signal
 import subprocess
 from argparse import ArgumentParser
 from time import sleep
@@ -195,10 +196,16 @@ def run_jobs(mode: ExperimentMode, shared_session_id: Optional[str], should_keep
     # Terminate the measurements no matter what (even if the user pressed CTRL+C)
     finally:
         try:
+            # Block SIGINT (Ctrl+C) during cleanup
+            original_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
+
             scanner_trigger_sender.stop_measurement()
             if not should_keep_output_directories:
                 if not experiments_config.remove_outputs():
                     logger.warning("There was an error while removing outputs")
+
+            # Restore original handler
+            signal.signal(signal.SIGINT, original_handler)
         except Exception as e:
             logger.critical(f"An unexpected error occurred upon stopping measurements: {e}")
 
