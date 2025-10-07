@@ -38,10 +38,11 @@ def run_single_job(
             f"{experiment_config}\n"
         )
         print(experiment_config.format_user_selection(user_selected_fields))
+        print()
 
         subprocess.run(experiment_config.get_hadoop_job_args(), check=True)
 
-        print(f"\nJob has terminated successfully.{'' if session_id else 'Session ID: ' + session_id}\n")
+        print(f"\nJob has terminated successfully.{'Session ID: ' + session_id if session_id else ''}")
         print(experiment_config)
     except subprocess.CalledProcessError as e:
         logger.warning(
@@ -70,7 +71,7 @@ def run_single_job_with_scanner(
         generate_session_from=user_selected_fields
     )
     scanner_trigger_sender.start_measurement(session_id=session_id)
-    print(f"**************** Session ID: {session_id} ****************")
+    print(f"\n**************** Session ID: {session_id} ****************")
 
     # run experiments
     is_executed_successfully = run_single_job(
