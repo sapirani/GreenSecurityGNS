@@ -423,7 +423,7 @@ class HadoopJobConfig(BaseModel):
                               Field            | Value
         ---------------------------------------|----------
           application_manager_memory_mb  (am)  | 256
-          input_path                     (i)   | \input
+          input_path                     (i)   | /input
           map_memory_mb                  (mm)  | 256
           number_of_mappers              (m)   | 2
           number_of_reducers             (r)   | 1
