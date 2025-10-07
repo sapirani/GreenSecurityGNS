@@ -62,7 +62,7 @@ class TriggerSender(BaseModel):
         return "-".join(
             [
                 f"{HadoopJobConfig.model_fields[field_name].alias}_{field_value}"
-                for field_name, field_value in generate_session_from.items()
+                for field_name, field_value in sorted(generate_session_from.items())
             ]
         )
 
