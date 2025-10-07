@@ -1,7 +1,7 @@
 import subprocess
 from argparse import ArgumentParser
 from time import sleep
-from typing import Optional, Iterator, List, Dict, Any
+from typing import Optional, Dict, Any
 
 from automatic_experiments_parameters import experiments_config, scanner_trigger_sender
 from ivan.resourcemanager.hadoop_job_config import HadoopJobConfig
@@ -188,7 +188,7 @@ def _run_jobs_by_mode(mode: ExperimentMode, shared_session_id: Optional[str]):
     print(f"\nFinished automatic experiments {'successfully' if executed_successfully else 'unsuccessfully'}\n")
 
 
-def run_jobs(mode: ExperimentMode, should_keep_output_directories: bool, shared_session_id: Optional[str]):
+def run_jobs(mode: ExperimentMode, shared_session_id: Optional[str], should_keep_output_directories: bool):
     try:
         _run_jobs_by_mode(mode, shared_session_id)
     # Terminate the measurements no matter what (even if the user pressed CTRL+C)
@@ -202,11 +202,11 @@ def run_jobs(mode: ExperimentMode, should_keep_output_directories: bool, shared_
             logger.critical(f"An unexpected error occurred upon stopping measurements: {e}")
 
 
-def main(print_configurations_only: bool, should_keep_output_directories: bool, shared_session_id: Optional[str]):
+def main(print_configurations_only: bool, shared_session_id: Optional[str], should_keep_output_directories: bool):
     if print_configurations_only:
         print(f"\n{experiments_config}\n")
     else:
-        run_jobs(experiments_config.mode, should_keep_output_directories, shared_session_id)
+        run_jobs(experiments_config.mode, shared_session_id, should_keep_output_directories)
 
 
 if __name__ == '__main__':
@@ -237,4 +237,4 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    main(args.print_configurations_only, args.keep_output_directories, args.shared_session_id)
+    main(args.print_configurations_only, args.shared_session_id, args.keep_output_directories)
