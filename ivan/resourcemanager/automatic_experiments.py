@@ -23,7 +23,7 @@ def setup_logger():
 
 def run_single_job(
     job_index: int,
-    number_of_all_experiments,
+    number_of_all_experiments: int,
     experiment_config: HadoopJobConfig,
     user_selected_fields: Dict[str, Any],
     session_id: Optional[str]
@@ -58,7 +58,7 @@ def run_single_job(
 
 def run_single_job_with_scanner(
     job_index: int,
-    number_of_all_experiments,
+    number_of_all_experiments: int,
     experiment_config: HadoopJobConfig,
     user_selected_fields: Dict[str, Any],
 ):
