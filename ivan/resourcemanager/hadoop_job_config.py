@@ -417,6 +417,22 @@ class HadoopJobConfig(BaseModel):
 
     @classmethod
     def format_user_selection(cls, user_selection: Dict[str, Any]) -> str:
+        """
+        This function returns a formatted table, with 2 columns - field name and value.
+        For example:
+                              Field            | Value
+        ---------------------------------------|----------
+          application_manager_memory_mb  (am)  | 256
+          input_path                     (i)   | \input
+          map_memory_mb                  (mm)  | 256
+          number_of_mappers              (m)   | 2
+          number_of_reducers             (r)   | 1
+          reduce_memory_mb               (rm)  | 256
+
+          The data is taken from the dictionary argument that should represent the fields the user explicitly selected.
+          The keys are the field names and the values are the user's selection.
+        """
+
         def add_alias(key: str) -> str:
             alias = cls.model_fields[key].alias
             return f"({alias})" if alias and alias != key else ""

@@ -163,7 +163,7 @@ class AutomaticExperimentsConfig(BaseModel):
 
         return params
 
-    def all_experiments_configurations(self) -> Iterator[HadoopJobConfig]:
+    def all_experiments_configurations(self) -> List[HadoopJobConfig]:
         return self._all_experiments_configs
 
     def _core_fields_configured_by_user(self) -> Set[str]:
