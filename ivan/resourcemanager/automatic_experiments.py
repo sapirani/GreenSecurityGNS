@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 def setup_logger():
     # TODO: UNIFY THIS FUNCTION WITH THE APPLICATION FLOW LOGGER FROM THE OTHER REPO
-    logger.setLevel(logging.DEBUG)  # Or DEBUG, WARNING, etc.
+    logger.setLevel(logging.DEBUG)
     handler = logging.StreamHandler()
     handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s %(message)s'))
     if not logger.handlers:
