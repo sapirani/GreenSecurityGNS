@@ -4,7 +4,7 @@ from time import sleep
 from typing import Optional, Dict, Any
 
 from automatic_experiments_parameters import experiments_config, scanner_trigger_sender
-from ivan.resourcemanager.hadoop_job_config import HadoopJobConfig
+from hadoop_job_config import HadoopJobConfig
 from trigger_sender import TriggerSender
 from jobs_configurator import ExperimentMode
 import logging
