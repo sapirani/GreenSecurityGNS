@@ -225,7 +225,7 @@ class HadoopJobConfig(BaseModel):
     min_split_size: int = Field(
         default=0,
         ge=0,
-        alias="n",
+        alias="sm",
         title=Groups.MEMORY.value,
         description="Minimum input split size with human-readable units (B, KB, MB, GB). "
                     "Larger min split size reduces the number of map tasks, "
@@ -238,7 +238,7 @@ class HadoopJobConfig(BaseModel):
     max_split_size: int = Field(
         default=128 * 1024 * 1024,
         gt=0,
-        alias="x",
+        alias="sM",
         title=Groups.MEMORY.value,
         description="Maximum input split size with human-readable units (B, KB, MB, GB). "
                     "Effectively determines the number of mappers that will be used "
