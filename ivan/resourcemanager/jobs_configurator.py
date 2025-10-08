@@ -153,7 +153,7 @@ class AutomaticExperimentsConfig(BaseModel):
     def get_config_parameters_grid(self) -> Dict[str, List[Any]]:
         """
         :return: a dictionary consisting the exact keys as 'HadoopJobConfig'.
-        If called after normalizing fields (this is the initial intention) the value of each item is will be a
+        If called after normalizing fields (this is the initial intention) the value of each item will be a
         normalized field (a sequence of items), with a default value / user configured values.
         Otherwise, the raw fields (that might be None or single values) will be returned.
         """
