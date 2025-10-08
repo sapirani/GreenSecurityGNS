@@ -2,7 +2,6 @@ import argparse
 import inspect
 import shlex
 import subprocess
-from argparse import _ArgumentGroup
 from enum import Enum
 from pathlib import Path
 from typing import List, Optional, Type, Dict, Any
@@ -295,7 +294,7 @@ class HadoopJobConfig(BaseModel):
 
     @staticmethod
     def _to_argparse_add_enum_argument(
-            group: _ArgumentGroup,
+            group,
             field_default: Enum,
             flags: List[str],
             help_text: str,
@@ -312,7 +311,7 @@ class HadoopJobConfig(BaseModel):
 
     @staticmethod
     def _to_argparse_add_human_readable_argument(
-            group: _ArgumentGroup,
+            group,
             field_default: Enum,
             flags: List[str],
             help_text: str
@@ -326,7 +325,7 @@ class HadoopJobConfig(BaseModel):
 
     @staticmethod
     def _to_argparse_add_boolean_argument(
-            group: _ArgumentGroup,
+            group,
             field_default: Enum,
             flags: List[str],
             help_text: str
@@ -338,7 +337,7 @@ class HadoopJobConfig(BaseModel):
 
     @staticmethod
     def _to_argparse_add_general_argument(
-            group: _ArgumentGroup,
+            group,
             field_default: Enum,
             flags: List[str],
             help_text: str,
