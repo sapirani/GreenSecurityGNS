@@ -85,7 +85,7 @@ Or, run a single task without resource measurement code (i.e., the scanner):
 `python3 run_task.py`
 
 
-### 🧩 Supported Configuration Fields
+### Supported Configuration Fields
 
 | Group | Field | Shortcut | Default | Type | Constraints | Description |
 |:------|:------|:----------|:---------|:------|:-------------|:-------------|
@@ -110,7 +110,6 @@ Or, run a single task without resource measurement code (i.e., the scanner):
 | **Shuffle & Compression** | `io_sort_factor` | `-f` | `10` | `int` | `gt=0` | Number of streams merged simultaneously during map output sort. |
 |  | `should_compress` | `-c` | `False` | `bool` | — | Enable compression of map outputs before shuffle (reduces network traffic at the cost of CPU). |
 |  | `map_compress_codec` | `-mcc` | `CompressionCodec.DEFAULT` | `CompressionCodec` (enum) | — | Compression codec for map output. See `CompressionCodec` enum for options (e.g., `DEFAULT`, `GZIP`, `SNAPPY`, ...). |
-
 
 
 #### Note!
