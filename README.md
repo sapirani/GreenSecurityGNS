@@ -73,33 +73,49 @@ After finishing to define the parallel task, exit the namenode container.
 Now, enter the resourcemanager node.
 Run the command 
 
-`/home/run_task_with_scanner.sh` 
+`cd /home`
 
-or the command 
+Change the tasks' configuration inside (press 'i' to insert, then ':wq' to save, or ':q!' tp quit)
+`vim automatic_experiments_parameters.py`
 
-`/home/run_task_without_scanner.sh` 
+Run the tasks
+`python3 automatic_experiments.py`
 
-based on whether we want to run the scanner code during the parallel task.
-The parameter n represents the number of additional datanodes that are connected to the network.
+Or, run a single task without resource measurement code (i.e., the scanner):
+`python3 run_task.py`
 
-#### Available flags for `/home/run_task_with_scanner.sh`
-<pre>
- 1. -d, --datanodes                    Number of datanodes (default: 3)
- 2. -i, --measurement_session_id       Optional session ID (default: random human-readable ID)
- 3. -m, --mappers                      Number of mappers (default: datanodes)
- 4. -r, --reducers                     Number of reducers (default: datanodes)
- 5. -h, --help                         Show help message
-</pre>
 
-#### Available flags for `/home/run_task_without_scanner.sh`
-<pre>
-1.  -m, --mappers                      Number of mappers (default: 3)
-2.  -r, --reducers                     Number of reducers (default: 3)
-3.  -h, --help                         Shows help message
-</pre>
-   
-Note: you may send parameters by order without mentioning the name of the flag (for example, without writing -d or --datanodes).
-You may choose a subset of flags, and the others will receive the default value.
+### Supported Configuration Fields
+
+| Group | Field | Shortcut | Default | Type | Constraints | Description |
+|:------|:------|:----------|:---------|:------|:-------------|:-------------|
+| **Task Definition** | `input_path` | `-i` | `/input` | `Path` | — | HDFS path to the input directory. |
+|  | `output_path` | `-o` | `/output` | `Path` | — | HDFS path to the output directory. |
+|  | `mapper_path` | `-mp` | `/home/mapper.py` | `Path` | — | Path to the mapper implementation. |
+|  | `reducer_path` | `-rp` | `/home/reducer.py` | `Path` | — | Path to the reducer implementation. |
+| **Parallelism & Scheduling** | `number_of_mappers` | `-m` | `2` | `int` | `gt=0` | Number of mapper tasks. |
+|  | `number_of_reducers` | `-r` | `1` | `int` | `gt=0` | Number of reducer tasks. |
+|  | `map_vcores` | `-mc` | `1` | `int` | `gt=0` | Number of vCores per map task. |
+|  | `reduce_vcores` | `-rc` | `1` | `int` | `gt=0` | Number of vCores per reduce task. |
+|  | `application_manager_vcores` | `-ac` | `1` | `int` | `gt=0` | Number of vCores for the application master. |
+|  | `shuffle_copies` | `-sc` | `5` | `int` | `gt=0` | Parallel copies per reduce during shuffle. More copies speed up shuffle but risk saturating network or disk I/O. |
+|  | `jvm_numtasks` | `-jvm` | `1` | `int` | `gt=0` | Number of tasks per JVM to reduce JVM startup overhead. |
+|  | `slowstart_completed_maps` | `-ssc` | `0.05` | `float` | `ge=0`, `le=1` | Fraction of maps to finish before reduce begins. Higher values delay reduce start and reduce shuffle load. |
+| **Memory** | `map_memory_mb` | `-mm` | `1024` | `int` | `gt=0` | Memory per map task (MB). |
+|  | `reduce_memory_mb` | `-rm` | `1024` | `int` | `gt=0` | Memory per reduce task (MB). |
+|  | `application_manager_memory_mb` | `-am` | `1536` | `int` | `gt=0` | Memory for application master (MB). |
+|  | `sort_buffer_mb` | `-sb` | `100` | `int` | `gt=0` | Sort buffer size (MB). |
+|  | `min_split_size` | `-sm` | `0` | `int` | `ge=0` — human-readable units supported | Minimum input split size (supports `B`, `KB`, `MB`, `GB`). Larger values reduce number of map tasks (lower startup overhead) but may reduce parallelism. |
+|  | `max_split_size` | `-sM` | `134217728 (128 MB)` | `int` | `gt=0` — human-readable units supported | Maximum input split size (supports `B`, `KB`, `MB`, `GB`). Determines mapper count together with input size. |
+| **Shuffle & Compression** | `io_sort_factor` | `-f` | `10` | `int` | `gt=0` | Number of streams merged simultaneously during map output sort. |
+|  | `should_compress` | `-c` | `False` | `bool` | — | Enable compression of map outputs before shuffle (reduces network traffic at the cost of CPU). |
+|  | `map_compress_codec` | `-mcc` | `CompressionCodec.DEFAULT` | `CompressionCodec` (enum) | — | Compression codec for map output. See `CompressionCodec` enum for options (e.g., `DEFAULT`, `GZIP`, `SNAPPY`, ...). |
+
+
+#### Note!
+it is highly recommended to install the Pydantic plugin for Pycharm (for autocompletion and typing)
+Press shift+shift quickly, type 'Plugins' and press enter.
+Inside the marketplace - search for 'Pydantic' and install
 
 ### Collect results
 After the task is done, you can go back to the terminal and enter the ivan folder. 

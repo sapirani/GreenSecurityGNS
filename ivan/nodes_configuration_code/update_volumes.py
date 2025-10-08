@@ -5,7 +5,7 @@ from typing import List
 from pathlib import Path
 
 
-TEMPLATE_PATH = r"./program_parameters_template.py"
+TEMPLATE_PATH = r"./program_parameters.py"
 PROGRAM_PARAMETERS_FILE_NAME = "program_parameters.py"
 
 SCANNER_DIRECTORY = "Scanner"
