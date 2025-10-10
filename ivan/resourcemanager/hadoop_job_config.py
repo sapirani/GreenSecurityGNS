@@ -175,7 +175,9 @@ class HadoopJobConfig(BaseModel):
         gt=0,
         alias="jvm",
         title=Groups.PARALLELISM_AND_SCHEDULING.value,
-        description="Number of tasks per JVM to reduce JVM startup overhead.",
+        description="Number of tasks per JVM to reduce JVM startup overhead. "
+                    "While JVM reuse improves efficiency, "
+                    "it introduces a risk of tasks affecting one another due to shared state.",
     )
 
     slowstart_completed_maps: float = Field(
