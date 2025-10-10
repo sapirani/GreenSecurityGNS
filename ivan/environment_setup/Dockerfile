@@ -59,8 +59,8 @@ ENV MAPRED_CONF_mapreduce_reduce_memory_mb=160
 # -Xss<size> - thread stack size (memory per thread for local variables, etc.)
 
 # Default size of heap, for all mappers and reducers, if not set explicitly
-ENV MAPRED_CONF_mapred_child_java_opts="-Xms2m -Xmx128m -XX:+UseParallelGC -Xloggc:/var/log/hadoop/gc_logs/map_gc.log"
+ENV MAPRED_CONF_mapred_child_java_opts="-Xms2m -Xmx256m -XX:+UseParallelGC -Xloggc:/var/log/hadoop/gc_logs/map_gc.log"
 # Default size of heap for all mappers
-ENV MAPRED_CONF_mapreduce_map_java_opts="-Xms2m -Xmx128m -XX:+UseParallelGC -Xloggc:/doovar/log/hadoop/gc_logs/map_gc.log"
+ENV MAPRED_CONF_mapreduce_map_java_opts="-Xms2m -Xmx256m -XX:+UseParallelGC -Xloggc:/doovar/log/hadoop/gc_logs/map_gc.log"
 # Default size of heap for all reducers
-ENV MAPRED_CONF_mapreduce_reduce_java_opts="-Xms2m -Xmx128m -XX:+UseParallelGC -Xloggc:/var/log/hadoop/gc_logs/map_gc.log"
+ENV MAPRED_CONF_mapreduce_reduce_java_opts="-Xms2m -Xmx256m -XX:+UseParallelGC -Xloggc:/var/log/hadoop/gc_logs/map_gc.log"

@@ -43,7 +43,7 @@ def run_single_job(
 
         subprocess.run(experiment_config.get_hadoop_job_args(), check=True)
 
-        print(f"\nJob has terminated successfully.{'Session ID: ' + session_id if session_id else ''}")
+        print(f"\nJob has terminated successfully. {'Session ID: ' + session_id if session_id else ''}")
         print(experiment_config)
     except subprocess.CalledProcessError as e:
         logger.warning(
