@@ -91,10 +91,6 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/mapred-site.xml mapreduce.map.speculative false
     addProperty /etc/hadoop/mapred-site.xml mapreduce.reduce.speculative false
 
-    # instead of resource env variable
-    addProperty /etc/hadoop/mapred-site.xml mapreduce.map.java.opts "-Xms512m -Xmx1024m -XX:+UseG1GC -Xloggc:/var/log/hadoop/gc_logs/map_gc.log"
-
-
 fi
 
 if [ -n "$GANGLIA_HOST" ]; then

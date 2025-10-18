@@ -28,7 +28,6 @@ WORKDIR /green_security_measurements/Scanner
 EXPOSE 8088
 
 ENV YARN_RESOURCEMANAGER_HEAPSIZE=8192
-##ENV HADOOP_OPTS="-Xloggc:/path/to/pc.log -XX:+PrintGCDetails -XX:+PrintGCDateStamps"
 ##ENV SERVICE_PRECONDITION="namenode:9000 namenode:9870 datanode1:9864 datanode2:9864 datanode3:9864"
 
 CMD ["/run.sh"]
