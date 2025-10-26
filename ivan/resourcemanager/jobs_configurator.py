@@ -47,6 +47,7 @@ class AutomaticExperimentsConfig(BaseModel):
     slowstart_completed_maps: Union[float, Sequence[float], None] = None
 
     # Memory
+    heap_memory_ratio: Union[float, Sequence[float], None] = None
     map_memory_mb: Union[int, Sequence[int], None] = None
     reduce_memory_mb: Union[int, Sequence[int], None] = None
     application_manager_memory_mb: Union[int, Sequence[int], None] = None

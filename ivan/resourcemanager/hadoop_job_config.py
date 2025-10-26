@@ -213,6 +213,16 @@ class HadoopJobConfig(BaseModel):
     )
 
     # Memory
+    heap_memory_ratio: float = Field(
+        default=0.8,
+        gt=0,
+        le=1,
+        alias="hmr",
+        title=Groups.MEMORY.value,
+        description="Ratio of container memory allocated to the JVM heap versus non-heap memory "
+                    "(e.g., stack, native buffers, etc.)",
+    )
+
     map_memory_mb: int = Field(
         default=1024,
         gt=0,
@@ -577,6 +587,7 @@ class HadoopJobConfig(BaseModel):
 hadoop jar /opt/hadoop-3.4.1/share/hadoop/tools/lib/hadoop-streaming-3.4.1.jar
   -D mapreduce.job.maps={self.number_of_mappers}
   -D mapreduce.job.reduces={self.number_of_reducers}
+  -D mapreduce.job.heap.memory-mb.ratio={self.heap_memory_ratio}
   -D mapreduce.map.memory.mb={self.map_memory_mb}
   -D mapreduce.reduce.memory.mb={self.reduce_memory_mb}
   -D yarn.app.mapreduce.am.resource.mb={self.application_manager_memory_mb}
