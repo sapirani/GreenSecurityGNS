@@ -1,13 +1,19 @@
-from general_consts import *
+from utils.general_consts import *
 
 # ======= Scanner Parameters =======
-main_program_to_scan = ProgramToScan.NO_SCAN
+main_program_to_scan = ProgramToScan.BASELINE_MEASUREMENT
 background_programs_types = []  #[ProgramToScan.DummyANTIVIRUS, ProgramToScan.Perfmon]
 
 kill_background_process_when_main_finished = True
-summary_version = SummaryVersion.OTHER
+summary_type = SummaryType.NATIVE
 
-scanner_version = ScannerVersion.WITHOUT_BATTERY
+process_monitor_type = ProcessMonitorType.FULL
+battery_monitor_type = BatteryMonitorType.WITHOUT_BATTERY
+
+custom_process_filter_types = []     # [CustomFilterType.FILTER_OUT_PYTHON, CustomFilterType.FILTER_OUT_CMD]
+
+# Reading the process arguments may significantly harm performance. Set this variable to False if it is not needed.
+read_process_arguments = True
 
 power_plan = PowerPlan.BALANCED
 scan_option = ScanMode.ONE_SCAN
@@ -19,7 +25,9 @@ file_type = "pdf"
 directory_type = "Duplicated Files"
 custom_scan_path = r'""'
 
-RUNNING_TIME = 100 * MINUTE # insert time (e.g. 0.5 * MINUTE) or None in case you want to wait until process ends in ONE_SCAN mode
+RUNNING_TIME = 24 * 60 * MINUTE # insert time (e.g. 0.5 * MINUTE) or None in case you want to wait until process ends in ONE_SCAN mode
+
+SLEEP_BETWEEN_ITERATIONS_SECONDS = 2
 
 MINIMUM_DELTA_CAPACITY = 200     # in mWh
 
@@ -37,7 +45,7 @@ DEFAULT_TIME_BEFORE_SLEEP_MODE = 4
 is_inside_container = True
 
 # ==== Elastic logging configuration
-elastic_url = "http://192.168.140.101:9200"
+elastic_url = "http://192.168.140.110:9200"
 elastic_username = "elastic"
 elastic_password = "71BPiEiQ"
 
@@ -60,11 +68,8 @@ installation_dir = r"C:\Users\Administrator\Repositories"
 model_action = 'predict'# train or predict
 
 # For CPU CONSUMER program
-cpu_percent_to_consume = 20
+cpu_percent_to_consume = 50
 
-# For MEMORY CONSUMER program
-memory_chunk_size = 1 * MB
-consumption_speed = 10 * MB / SECOND
-
-# For Network Sender
-time_interval = 0.2
+# For Network, Memory and Disk tasks
+dummy_task_rate = 1 / 5
+dummy_task_unit_size = 1024  # can be None
