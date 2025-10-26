@@ -3,9 +3,9 @@ import subprocess
 from enum import Enum
 from itertools import product
 from pathlib import Path
-from typing import List, Iterator, Dict, Any, Union, Iterable, Sequence, Set
+from typing import List, Dict, Any, Union, Iterable, Sequence, Set
 from pydantic import BaseModel, model_validator, PrivateAttr
-from hadoop_job_config import CompressionCodec, HadoopJobConfig, HDFS_NAMENODE
+from hadoop_job_config import CompressionCodec, HadoopJobConfig, GarbageCollector
 
 
 class ExperimentMode(str, Enum):
@@ -47,17 +47,30 @@ class AutomaticExperimentsConfig(BaseModel):
     slowstart_completed_maps: Union[float, Sequence[float], None] = None
 
     # Memory
+    heap_memory_ratio: Union[float, Sequence[float], None] = None
     map_memory_mb: Union[int, Sequence[int], None] = None
     reduce_memory_mb: Union[int, Sequence[int], None] = None
     application_manager_memory_mb: Union[int, Sequence[int], None] = None
     sort_buffer_mb: Union[int, Sequence[int], None] = None
     min_split_size: Union[int, Sequence[int], None] = None
     max_split_size: Union[int, Sequence[int], None] = None
+    map_min_heap_size_mb: Union[int, Sequence[int], None] = None
+    map_max_heap_size_mb: Union[int, Sequence[int], None] = None
+    map_stack_size_kb: Union[int, Sequence[int], None] = None
+    reduce_min_heap_size_mb: Union[int, Sequence[int], None] = None
+    reduce_max_heap_size_mb: Union[int, Sequence[int], None] = None
+    reduce_stack_size_kb: Union[int, Sequence[int], None] = None
 
     # Shuffle & Compression
     io_sort_factor: Union[int, Sequence[int], None] = None
     should_compress: Union[bool, Sequence[bool], None] = None
     map_compress_codec: Union[CompressionCodec, Sequence[CompressionCodec], None] = None
+
+    # JVM & Garbage Collection Settings
+    map_garbage_collector: Union[GarbageCollector, Sequence[GarbageCollector], None] = None
+    reduce_garbage_collector: Union[GarbageCollector, Sequence[GarbageCollector], None] = None
+    map_garbage_collector_threads_num: Union[int, Sequence[int], None] = None
+    reduce_garbage_collector_threads_num: Union[int, Sequence[int], None] = None
 
     # Private fields
     _all_experiments_configs: List[HadoopJobConfig] = PrivateAttr()
