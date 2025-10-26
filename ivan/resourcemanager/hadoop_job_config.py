@@ -379,7 +379,7 @@ class HadoopJobConfig(BaseModel):
                     "Options: " + ", ".join(f"{gc.name} ('{gc.value}')" for gc in GarbageCollector)
     )
 
-    map_garbage_collector_threads_count: int = Field(
+    map_garbage_collector_threads_num: int = Field(
         default=1,
         gt=0,
         alias="mgct",
@@ -388,7 +388,7 @@ class HadoopJobConfig(BaseModel):
                     "Should be compatible with the mapper's vcores allocation",
     )
 
-    reduce_garbage_collector_threads_count: int = Field(
+    reduce_garbage_collector_threads_num: int = Field(
         default=1,
         gt=0,
         alias="rgct",
@@ -603,8 +603,8 @@ hadoop jar /opt/hadoop-3.4.1/share/hadoop/tools/lib/hadoop-streaming-3.4.1.jar
   -D mapreduce.reduce.shuffle.parallelcopies={self.shuffle_copies}
   -D mapreduce.job.jvm.numtasks={self.jvm_numtasks}
   -D mapreduce.job.reduce.slowstart.completedmaps={self.slowstart_completed_maps}
-  -D mapreduce.map.java.opts="-Xms{self.map_min_heap_size_mb}m -Xmx{self.map_max_heap_size_mb}m -Xss{self.map_stack_size_kb}k -XX:+{self.map_garbage_collector} -XX:ParallelGCThreads={self.map_garbage_collector_threads_count} -Xloggc:/var/log/hadoop/gc_logs/map_gc.log"
-  -D mapreduce.reduce.java.opts="-Xms{self.reduce_min_heap_size_mb}m -Xmx{self.reduce_max_heap_size_mb}m -Xss{self.reduce_stack_size_kb}k -XX:+{self.reduce_garbage_collector} -XX:ParallelGCThreads={self.reduce_garbage_collector_threads_count} -Xloggc:/var/log/hadoop/gc_logs/map_gc.log"
+  -D mapreduce.map.java.opts="-Xms{self.map_min_heap_size_mb}m -Xmx{self.map_max_heap_size_mb}m -Xss{self.map_stack_size_kb}k -XX:+{self.map_garbage_collector} -XX:ParallelGCThreads={self.map_garbage_collector_threads_num} -Xloggc:/var/log/hadoop/gc_logs/map_gc.log"
+  -D mapreduce.reduce.java.opts="-Xms{self.reduce_min_heap_size_mb}m -Xmx{self.reduce_max_heap_size_mb}m -Xss{self.reduce_stack_size_kb}k -XX:+{self.reduce_garbage_collector} -XX:ParallelGCThreads={self.reduce_garbage_collector_threads_num} -Xloggc:/var/log/hadoop/gc_logs/map_gc.log"
 
   -input {HDFS_NAMENODE}{self.input_path}
   -output {HDFS_NAMENODE}{self.output_path}

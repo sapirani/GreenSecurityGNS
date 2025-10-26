@@ -69,8 +69,8 @@ class AutomaticExperimentsConfig(BaseModel):
     # JVM & Garbage Collection Settings
     map_garbage_collector: Union[GarbageCollector, Sequence[GarbageCollector], None] = None
     reduce_garbage_collector: Union[GarbageCollector, Sequence[GarbageCollector], None] = None
-    map_garbage_collector_threads_count: Union[int, Sequence[int], None] = None
-    reduce_garbage_collector_threads_count: Union[int, Sequence[int], None] = None
+    map_garbage_collector_threads_num: Union[int, Sequence[int], None] = None
+    reduce_garbage_collector_threads_num: Union[int, Sequence[int], None] = None
 
     # Private fields
     _all_experiments_configs: List[HadoopJobConfig] = PrivateAttr()
