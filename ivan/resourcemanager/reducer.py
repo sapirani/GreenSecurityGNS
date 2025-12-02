@@ -1,34 +1,23 @@
-#!/usr/bin/python3
-
+#!/usr/bin/env python3
 import sys
 
-current_word = None
-current_count = 0
-word = None
+current_sig = None
+current_words = []
 
-# Input comes from STDIN
 for line in sys.stdin:
-    # Remove leading and trailing whitespace
     line = line.strip()
-    # Parse the input we got from the mapper
-    word, count = line.split('\t', 1)
-
-    try:
-        count = int(count)
-    except ValueError:
-        # If count is not a number, silently discard this line
+    if '\t' not in line:
         continue
+    sig, word = line.split('\t', 1)
 
-    # This IF-switch only works because Hadoop sorts map output by key
-    if current_word == word:
-        current_count += count
+    if current_sig == sig:
+        current_words.append(word)
     else:
-        if current_word:
-            # Write the result to STDOUT
-            print(f"{current_word}\t{current_count}")
-        current_count = count
-        current_word = word
+        if current_sig and len(current_words) > 1:
+            print(f"{len(current_words)} {', '.join(sorted(current_words))}")
+        current_sig = sig
+        current_words = [word]
 
-# Do not forget to output the last word if needed!
-if current_word == word:
-    print(f"{current_word}\t{current_count}")
+# Handle last group
+if current_sig and len(current_words) > 1:
+    print(f"{len(current_words)} {', '.join(sorted(current_words))}")

@@ -1,13 +1,9 @@
-#!/usr/bin/python3
-
+#!/usr/bin/env python3
 import sys
 
-# Input comes from STDIN (standard input)
 for line in sys.stdin:
-    # Remove leading and trailing whitespace
-    line = line.strip()
-    # Split the line into words
-    words = line.split()
-    # Output the word with a count of 1
+    words = line.strip().lower().split()
     for word in words:
-        print(f"{word}\t1")
+        if word:  # Skip empty words
+            signature = ''.join(sorted(word))
+            print(f'{signature}\t{word}')
