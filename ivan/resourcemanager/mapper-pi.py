@@ -8,13 +8,15 @@ for line in sys.stdin:
     if not line:
         continue
 
-    # Read number of points per mapper (e.g., from first line or fixed)
+    # Read number of random sample points to generate for this mapper.
+    # Each point is used to estimate π by checking whether it falls inside unit-circle.
+    # Larger values give accurate estimate but increase runtime.
     try:
         num_points = int(line)
     except ValueError:
-        num_points = 1000000  # Default if input invalid
+        num_points = 1_000_000  # TODO: invalid input should raise an error instead of silently using a default
 
-    inside_count = 0
+    inside_count = 0  # Number points that fall inside the unit-circle (x^2 + y^2 <= 1)
     for _ in range(num_points):
         x = random.random()
         y = random.random()
