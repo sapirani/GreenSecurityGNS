@@ -99,17 +99,17 @@ Or, run a single task without resource measurement code (i.e., the scanner):
 |  | `map_vcores` | `-mc` | `1` | `int` | `gt=0` | Number of vCores per map task. |
 |  | `reduce_vcores` | `-rc` | `1` | `int` | `gt=0` | Number of vCores per reduce task. |
 |  | `application_manager_vcores` | `-ac` | `1` | `int` | `gt=0` | Number of vCores for the application master. |
-|  | `shuffle_copies` | `-sc` | `5` | `int` | `gt=0` | Parallel copies per reduce during shuffle. |
+|  | `shuffle_copies` | `-sc` | `5` | `int` | `gt=0` | Parallel copies per reduce during shuffle. More copies speed up shuffle but risk saturating network or disk I/O. |
 |  | `jvm_numtasks` | `-jvm` | `1` | `int` | `gt=0` | Number of tasks per JVM to reduce JVM startup overhead. |
-|  | `slowstart_completed_maps` | `-ssc` | `0.05` | `float` | `ge=0`, `le=1` | Fraction of maps to finish before reduce begins. |
+|  | `slowstart_completed_maps` | `-ssc` | `0.05` | `float` | `ge=0`, `le=1` | Fraction of maps to finish before reduce begins. Higher values delay reduce start and reduce shuffle load. |
 
 | **Memory** | `heap_memory_ratio` | `-hmr` | `0.8` | `float` | `0 < hmr ≤ 1` | Ratio of container memory allocated to JVM heap. |
 |  | `map_memory_mb` | `-mm` | `1024` | `int` | `gt=0` | Memory per map task (MB). |
 |  | `reduce_memory_mb` | `-rm` | `1024` | `int` | `gt=0` | Memory per reduce task (MB). |
 |  | `application_manager_memory_mb` | `-am` | `1536` | `int` | `gt=0` | Memory for application master (MB). |
 |  | `sort_buffer_mb` | `-sb` | `100` | `int` | `gt=0` | Sort buffer size (MB). |
-|  | `min_split_size` | `-sm` | `0` | `int` | `ge=0` | Minimum input split size (supports B, KB, MB, GB). |
-|  | `max_split_size` | `-sM` | `134217728 (128 MB)` | `int` | `gt=0` | Maximum input split size (supports B, KB, MB, GB). |
+|  | `min_split_size` | `-sm` | `0` | `int` | `ge=0` — human-readable units supported | Minimum input split size (supports `B`, `KB`, `MB`, `GB`). Larger values reduce number of map tasks (lower startup overhead) but may reduce parallelism. |
+|  | `max_split_size` | `-sM` | `134217728 (128 MB)` | `int` | `gt=0` — human-readable units supported | Maximum input split size (supports `B`, `KB`, `MB`, `GB`). Determines mapper count together with input size. |
 |  | `map_min_heap_size_mb` | `-mhm` | `2` | `int` | `gt=0` | Initial heap size for mapper JVM. |
 |  | `map_max_heap_size_mb` | `-mhM` | `256` | `int` | `gt=0` | Maximum heap size for mapper JVM. |
 |  | `map_stack_size_kb` | `-ms` | `1024` | `int` | `gt=0` | Stack size per mapper thread. |
@@ -118,8 +118,8 @@ Or, run a single task without resource measurement code (i.e., the scanner):
 |  | `reduce_stack_size_kb` | `-rs` | `1024` | `int` | `gt=0` | Stack size per reducer thread. |
 
 | **Shuffle & Compression** | `io_sort_factor` | `-f` | `10` | `int` | `gt=0` | Number of streams merged during map output sort. |
-|  | `should_compress` | `-c` | `False` | `bool` | — | Enable map output compression. |
-|  | `map_compress_codec` | `-mcc` | `CompressionCodec.DEFAULT` | `enum` | — | Compression codec for map output. |
+|  | `should_compress` | `-c` | `False` | `bool` | — | Enable compression of map outputs before shuffle (reduces network traffic at the cost of CPU). |
+|  | `map_compress_codec` | `-mcc` | `CompressionCodec.DEFAULT` | `CompressionCodec` (enum) | — | Compression codec for map output. See `CompressionCodec` enum for options (e.g., `DEFAULT`, `GZIP`, `SNAPPY`, ...). |
 |  | `map_garbage_collector` | `-mgc` | `ParallelGC` | `GarbageCollector` | — | Garbage collector used by mapper JVM. |
 |  | `reduce_garbage_collector` | `-rgc` | `ParallelGC` | `GarbageCollector` | — | Garbage collector used by reducer JVM. |
 
