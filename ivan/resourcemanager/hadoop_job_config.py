@@ -331,7 +331,7 @@ class HadoopJobConfig(BaseModel):
     reduce_stack_size_kb: int = Field(
         default=1024,
         gt=0,
-        alias="ms",
+        alias="rs",
         title=Groups.MEMORY.value,
         description="Stack size of each reducer thread."
                     "Low values increase the risk for StackOverflowError.",
