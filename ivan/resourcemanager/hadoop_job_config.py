@@ -72,11 +72,33 @@ class CompressionCodec(str, Enum):
         return super()._missing_(value)
 
 
+class GarbageCollector(str, Enum):
+    SerialGC = "UseSerialGC"
+    ParallelGC = "UseParallelGC"
+    ConcMarkSweepGC = "UseConcMarkSweepGC"
+    G1GC = "UseG1GC"
+
+    @classmethod
+    def _missing_(cls, value: str) -> Optional["GarbageCollector"]:
+        """
+        This function is called when you try to instantiate an enum with a string value that does not appear in the
+        enum values possibilities.
+        The function search for compatible field names and return that field if it found one.
+        """
+        if isinstance(value, str):
+            for member in cls:
+                if member.name.lower() == value.lower(): # noqa: we are inheriting from str and Enum
+                    return member   # noqa: we are inheriting from str and Enum
+
+        return super()._missing_(value)
+
+
 class Groups(str, Enum):
     TASK_DEFINITION = "Task Definition Settings"
     PARALLELISM_AND_SCHEDULING = "Parallelism & Scheduling Settings"
     MEMORY = "Memory Settings"
     SHUFFLE_AND_COMPRESSION = "Shuffle & Compression Settings"
+    JVM_AND_GC = "JVM & Garbage Collection Settings"
 
 
 class HadoopJobConfig(BaseModel):
@@ -191,6 +213,16 @@ class HadoopJobConfig(BaseModel):
     )
 
     # Memory
+    heap_memory_ratio: float = Field(
+        default=0.8,
+        gt=0,
+        le=1,
+        alias="hmr",
+        title=Groups.MEMORY.value,
+        description="Ratio of container memory allocated to the JVM heap versus non-heap memory "
+                    "(e.g., stack, native buffers, etc.)",
+    )
+
     map_memory_mb: int = Field(
         default=1024,
         gt=0,
@@ -249,6 +281,62 @@ class HadoopJobConfig(BaseModel):
         },
     )
 
+    map_min_heap_size_mb: int = Field(
+        default=2,
+        gt=0,
+        alias="mhm",
+        title=Groups.MEMORY.value,
+        description="Initial heap size for each mapper’s JVM."
+                    "Low values make faster starts but more garbage collector overhead.",
+    )
+
+    map_max_heap_size_mb: int = Field(
+        default=256,
+        gt=0,
+        alias="mhM",
+        title=Groups.MEMORY.value,
+        description="Maximum heap size for each mapper’s JVM."
+                    "Low values require more garbage collector overhead and open the risk for OutOfMemoryError "
+                    "in large tasks.",
+    )
+
+    map_stack_size_kb: int = Field(
+        default=1024,
+        gt=0,
+        alias="ms",
+        title=Groups.MEMORY.value,
+        description="Stack size of each mapper thread."
+                    "Low values increase the risk for StackOverflowError.",
+    )
+
+    reduce_min_heap_size_mb: int = Field(
+        default=2,
+        gt=0,
+        alias="rhm",
+        title=Groups.MEMORY.value,
+        description="Initial heap size for each reducer’s JVM."
+                    "Low values make faster starts but more garbage collector overhead.",
+    )
+
+    reduce_max_heap_size_mb: int = Field(
+        default=256,
+        gt=0,
+        alias="rhM",
+        title=Groups.MEMORY.value,
+        description="Maximum heap size for each reducer’s JVM."
+                    "Low values require more garbage collector overhead and open the risk for OutOfMemoryError "
+                    "in large tasks.",
+    )
+
+    reduce_stack_size_kb: int = Field(
+        default=1024,
+        gt=0,
+        alias="rs",
+        title=Groups.MEMORY.value,
+        description="Stack size of each reducer thread."
+                    "Low values increase the risk for StackOverflowError.",
+    )
+
     # Shuffle & Compression
     io_sort_factor: int = Field(
         default=10,
@@ -272,6 +360,41 @@ class HadoopJobConfig(BaseModel):
         title=Groups.SHUFFLE_AND_COMPRESSION.value,
         description="Compression codec for map output. "
                     "Options: " + ", ".join(f"{c.name} ('{c.value}')" for c in CompressionCodec)
+    )
+
+    # JVM & Garbage Collection Settings
+    map_garbage_collector: GarbageCollector = Field(
+        default=GarbageCollector.ParallelGC,
+        alias="mgc",
+        title=Groups.SHUFFLE_AND_COMPRESSION.value,
+        description="Type of garbage collector for mappers. "
+                    "Options: " + ", ".join(f"{gc.name} ('{gc.value}')" for gc in GarbageCollector)
+    )
+
+    reduce_garbage_collector: GarbageCollector = Field(
+        default=GarbageCollector.ParallelGC,
+        alias="rgc",
+        title=Groups.SHUFFLE_AND_COMPRESSION.value,
+        description="Type of garbage collector for reducers. "
+                    "Options: " + ", ".join(f"{gc.name} ('{gc.value}')" for gc in GarbageCollector)
+    )
+
+    map_garbage_collector_threads_num: int = Field(
+        default=1,
+        gt=0,
+        alias="mgct",
+        title=Groups.JVM_AND_GC.value,
+        description="Number of threads the mapper JVM uses for parallel garbage collection."
+                    "Should be compatible with the mapper's vcores allocation",
+    )
+
+    reduce_garbage_collector_threads_num: int = Field(
+        default=1,
+        gt=0,
+        alias="rgct",
+        title=Groups.JVM_AND_GC.value,
+        description="Number of threads the reducer JVM uses for parallel garbage collection."
+                    "Should be compatible with the reducer's vcores allocation",
     )
 
     @model_validator(mode="after")
@@ -464,6 +587,7 @@ class HadoopJobConfig(BaseModel):
 hadoop jar /opt/hadoop-3.4.1/share/hadoop/tools/lib/hadoop-streaming-3.4.1.jar
   -D mapreduce.job.maps={self.number_of_mappers}
   -D mapreduce.job.reduces={self.number_of_reducers}
+  -D mapreduce.job.heap.memory-mb.ratio={self.heap_memory_ratio}
   -D mapreduce.map.memory.mb={self.map_memory_mb}
   -D mapreduce.reduce.memory.mb={self.reduce_memory_mb}
   -D yarn.app.mapreduce.am.resource.mb={self.application_manager_memory_mb}
@@ -479,6 +603,8 @@ hadoop jar /opt/hadoop-3.4.1/share/hadoop/tools/lib/hadoop-streaming-3.4.1.jar
   -D mapreduce.reduce.shuffle.parallelcopies={self.shuffle_copies}
   -D mapreduce.job.jvm.numtasks={self.jvm_numtasks}
   -D mapreduce.job.reduce.slowstart.completedmaps={self.slowstart_completed_maps}
+  -D mapreduce.map.java.opts="-Xms{self.map_min_heap_size_mb}m -Xmx{self.map_max_heap_size_mb}m -Xss{self.map_stack_size_kb}k -XX:+{self.map_garbage_collector.value} -XX:ParallelGCThreads={self.map_garbage_collector_threads_num} -Xloggc:/var/log/hadoop/gc_logs/map_gc.log"
+  -D mapreduce.reduce.java.opts="-Xms{self.reduce_min_heap_size_mb}m -Xmx{self.reduce_max_heap_size_mb}m -Xss{self.reduce_stack_size_kb}k -XX:+{self.reduce_garbage_collector.value} -XX:ParallelGCThreads={self.reduce_garbage_collector_threads_num} -Xloggc:/var/log/hadoop/gc_logs/map_gc.log"
 
   -input {HDFS_NAMENODE}{self.input_path}
   -output {HDFS_NAMENODE}{self.output_path}

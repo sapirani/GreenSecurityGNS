@@ -1,4 +1,5 @@
 from jobs_configurator import AutomaticExperimentsConfig, ExperimentMode
+from hadoop_job_config import CompressionCodec, GarbageCollector
 
 # NOTE! it is highly recommended to install the Pydantic plugin for Pycharm (for autocompletion and typing)
 # Press shift+shift quickly, type 'Plugins' and press enter.
