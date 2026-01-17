@@ -12,10 +12,6 @@ RUN /green_security_measurements/green_security_venv/bin/pip3 install uvicorn==0
 ADD run.sh /run.sh
 RUN chmod a+x /run.sh
 
-COPY mapper.py /home
-COPY slow_mapper.py /home
-COPY reducer.py /home
-COPY slow_reducer.py /home
 
 WORKDIR /home
 COPY automatic_experiments_parameters.py.example automatic_experiments_parameters.py
