@@ -22,7 +22,7 @@ COPY run_task.py .
 COPY trigger_sender.py .
 COPY send_trigger_deprecated.sh .
 COPY generate_random_words.py .
-COPY mapreduce .
+COPY mapreduce mapreduce
 
 WORKDIR /green_security_measurements/Scanner
 

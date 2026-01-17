@@ -5,7 +5,7 @@ KB = 1024
 MB = 1024 * KB
 GB = 1024 * MB
 
-DEFAULT_FILE_SIZE = GB
+DEFAULT_FILE_SIZE_GB = 1.0
 DEFAULT_LEN_OF_WORD = 5
 DEFAULT_FILE_NAME = "input.txt"
 
@@ -32,8 +32,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate random lowercase words")
     parser.add_argument("-l", "--word_length", type=int, default=DEFAULT_LEN_OF_WORD,
                         help="Length of each word (default: 5)")
-    parser.add_argument("-s", "--size_bytes", type=int, default=DEFAULT_FILE_SIZE,
-                        help="Total output size in bytes")
+    parser.add_argument("-s", "--size_gb", type=float, default=DEFAULT_FILE_SIZE_GB,
+                        help="Total output size in GB")
     parser.add_argument("-o", "--output_path", type=str, default=DEFAULT_FILE_NAME,
                         help="Output file")
     parser.add_argument(
@@ -44,8 +44,8 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-
-    num_of_words = int(args.size_bytes / (args.word_length + 1))   # one character is required for a new line
+    size_bytes = int(args.size_gb * GB)
+    num_of_words = int(size_bytes / (args.word_length + 1))   # one character is required for a new line
 
     if args.to_local:
         write_to_file(num_of_words, args.word_length, args.output_path)
