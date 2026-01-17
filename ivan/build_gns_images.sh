@@ -77,4 +77,3 @@ cd ./historyserver
 wait
 
 sudo docker build -t historyserver .
-
