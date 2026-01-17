@@ -129,14 +129,14 @@ class HadoopJobConfig(BaseModel):
     )
 
     mapper_path: Path = Field(
-        default="/home/mapper.py",
+        default="/home/mapreduce/word_count/mapper.py",
         alias="mp",
         title=Groups.TASK_DEFINITION.value,
         description="Path to the mapper implementation",
     )
 
     reducer_path: Path = Field(
-        default="/home/reducer.py",
+        default="/home/mapreduce/word_count/reducer.py",
         alias="rp",
         title=Groups.TASK_DEFINITION.value,
         description="Path to the reducer implementation",
