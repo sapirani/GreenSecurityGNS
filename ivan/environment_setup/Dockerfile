@@ -41,7 +41,7 @@ ENV YARN_CONF_yarn_scheduler_capacity_root_default_maximum___allocation___mb=819
 # A CPU limitation for all executed tasks - could not exeed these limits, no matter on which datanode they are running
 ENV YARN_CONF_yarn_scheduler_capacity_root_default_maximum___allocation___vcores=5
 # Cluster-wide maximum vCores any container can request anywhere in the cluster
-ENV YARN_CONF_yarn_scheduler_maximum_allocation_vcores=5
+ENV YARN_CONF_yarn_scheduler_maximum___allocation___vcores=5
 # The amount of memory that each nodemanager (== datanode in our case) can allocate
 ENV YARN_CONF_yarn_nodemanager_resource_memory___mb=8192
 # The number of vCores each nodemanager (== datanode in our case) can allocate
