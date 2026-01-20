@@ -37,21 +37,21 @@ ENV MAPRED_CONF_mapreduce_reduce_env="HADOOP_MAPRED_HOME=/opt/hadoop-3.4.1/"
 
 
 # A memory limitation for all executed tasks - could not exeed these limits, no matter on which datanode they are running
-ENV YARN_CONF_yarn_scheduler_capacity_root_default_maximum___allocation___mb=3584
+ENV YARN_CONF_yarn_scheduler_capacity_root_default_maximum___allocation___mb=8192
 # A CPU limitation for all executed tasks - could not exeed these limits, no matter on which datanode they are running
-ENV YARN_CONF_yarn_scheduler_capacity_root_default_maximum___allocation___vcores=3
+ENV YARN_CONF_yarn_scheduler_capacity_root_default_maximum___allocation___vcores=5
 # The amount of memory that each nodemanager (== datanode in our case) can allocate
-ENV YARN_CONF_yarn_nodemanager_resource_memory___mb=3584
+ENV YARN_CONF_yarn_nodemanager_resource_memory___mb=8192
 # The number of vCores each nodemanager (== datanode in our case) can allocate
-ENV YARN_CONF_yarn_nodemanager_resource_cpu___vcores=3
+ENV YARN_CONF_yarn_nodemanager_resource_cpu___vcores=5
 
 
 # ******* Memory configurations tailured for reletively small tasks *************
 
 # Default maximum memory size allowed for each map task
-ENV MAPRED_CONF_mapreduce_map_memory_mb=160
+ENV MAPRED_CONF_mapreduce_map_memory_mb=512
 # Default maximum memory size allowed for each reduce task
-ENV MAPRED_CONF_mapreduce_reduce_memory_mb=160
+ENV MAPRED_CONF_mapreduce_reduce_memory_mb=512
 
 # NOTE: configuration flags meanining:
 # -Xms<size> - initial heap size (how much heap the JVM starts with)
@@ -59,8 +59,8 @@ ENV MAPRED_CONF_mapreduce_reduce_memory_mb=160
 # -Xss<size> - thread stack size (memory per thread for local variables, etc.)
 
 # Default size of heap, for all mappers and reducers, if not set explicitly
-ENV MAPRED_CONF_mapred_child_java_opts="-Xms2m -Xmx256m -XX:+UseParallelGC -Xloggc:/var/log/hadoop/gc_logs/map_gc.log"
+ENV MAPRED_CONF_mapred_child_java_opts="-Xms128m -Xmx384m -XX:+UseParallelGC -Xloggc:/var/log/hadoop/gc_logs/child_gc.log"
 # Default size of heap for all mappers
-ENV MAPRED_CONF_mapreduce_map_java_opts="-Xms2m -Xmx256m -XX:+UseParallelGC -Xloggc:/doovar/log/hadoop/gc_logs/map_gc.log"
+ENV MAPRED_CONF_mapreduce_map_java_opts="-Xms128m -Xmx384m -XX:+UseParallelGC -Xloggc:/var/log/hadoop/gc_logs/reduce_gc.log"
 # Default size of heap for all reducers
-ENV MAPRED_CONF_mapreduce_reduce_java_opts="-Xms2m -Xmx256m -XX:+UseParallelGC -Xloggc:/var/log/hadoop/gc_logs/map_gc.log"
+ENV MAPRED_CONF_mapreduce_reduce_java_opts="-Xms128m -Xmx384m -XX:+UseParallelGC -Xloggc:/var/log/hadoop/gc_logs/map_gc.log"
