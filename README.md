@@ -176,7 +176,8 @@ In order for it to succeed, we should configure containers of elastic that will 
 
 ## For Developers
 
-### Support DNS resolutions of nodes hostname
+### Support DNS Resolutions of Nodes Hostname
+
 The NAT cloud in GNS serves as DHCP server and DNS server.
 We use dhclient as a DHCP client.
 
@@ -203,3 +204,67 @@ SOURCE_FILE=/etc/dhcp/dhclient.conf
 sed -i "s/gethostname()/\"$HOSTNAME_PREFIX\"/g" "$SOURCE_FILE"
 ```
 
+
+### Support API Server on Resourcemanager Node (to be accessed outside of the cluster)
+The main problem here is that GNS3 controls the networking entirely and do not let us expose a port on the resourcemanager container, as regular docker containers support.
+it means that the API port is not available outside of the cluster.
+
+So, we should have a workaround that enables us to deploy the GNS3 on one machine and have API calls to some port on that machine that will be forwarded into a predefined port within the resourcemanager node.
+The chosen solution involves the use of the `socat` tool. To install:
+`sudo apt install socat`
+
+This tool enables us to listen on a port on the host machine where we deploy the GNS cluster, which will be forwarded into the resourcemanager container.
+The command goes as follows:
+`socat TCP-LISTEN:8000,fork,reuseaddr TCP4:resourcemanager-1:8000`
+
+##### Note: there are several things to consider:
+1.  We want to allow the dynamic ip allocation through DHCP (as explained [here](#support-dns-resolutions-of-nodes-hostname)) without being tied to a fixed ip address.
+Hence, we are using the domain name `resourcemanager-1` instead of a fixed ip address.
+Since the DNS server that knows how to translate the `resourcemanager-1` into an ip address is the NAT node, this resolution is made possible only within the cluster nodes (which defined the NAT node as their DNS server).
+To allow the same domain resolution in the host machine where the GNS is deployed, we are going to imitate this behavior and add the NAT DNS server (which is by default bounded to `192.168.122.1`) as one of the servers that serves our host machine.
+In general, we can modify the `/etc/resolv.conf` and add the following lines:
+
+```
+nameserver 192.168.122.1
+options no-aaaa
+```
+
+But this solution may not be persistent as the systemd-resolved service may reset this file into the default configuration.
+Hence, we will use the `dig` command to query `192.168.122.1` by ourselves to identify the ip address to forward the packets into.
+
+2. We are forwarding the request via `TCP4`, to avoid ipv6 DNS resolution, which is probably not supported via the NAT node as explained [here](#support-dns-resolutions-of-nodes-hostname).
+It saves a lot of time by avoiding the redundant resolution of ipv6 addresses. We also explicitly resolving the `resourcemanager-1` into an ipv4 address using dig (inside `/usr/local/bin/socat-forward-8000.sh`):
+
+```
+#!/bin/bash
+
+IP=$(dig +short @192.168.122.1 resourcemanager-1)
+exec socat TCP-LISTEN:8000,fork,reuseaddr TCP4:$IP:8000
+```
+
+4. We want socat to be persistent across reboots and automatically restart upon crashes or cases where its process is being killed.
+For that reason, we will define it as a service (paste inside /etc/systemd/system/socat-forward-port-8000.service):
+
+```
+[Unit]
+Description=Socat port forward   # Human-readable description
+After=network.target             # Start after networking is up
+
+[Service]
+# Listen on host port 8000 and forward to resourcemanager-1
+ExecStart=/usr/local/bin/socat-forward-8000.sh
+Restart=always                   # Always restart if it crashes
+RestartSec=5                     # Wait 5 seconds before restarting
+
+[Install]
+WantedBy=multi-user.target       # Start at boot in multi-user mode
+```
+
+Then, reload systemd and enable the service:
+```
+sudo systemctl daemon-reload
+sudo systemctl enable socat-forward-8000
+sudo systemctl start socat-forward-8000
+```
+
+Congratulations! We have a persistent and fast solution to forward requests from the host machine into the resourcemanager, while enabling dynamic ip allocations and resolutions.
