@@ -239,10 +239,19 @@ It saves a lot of time by avoiding the redundant resolution of ipv6 addresses. W
 #!/bin/bash
 
 IP=$(dig +short @192.168.122.1 resourcemanager-1)
+
+# Fail if IP could not be resolved
+if [[ -z "$IP" ]]; then
+    echo "ERROR: Could not resolve resourcemanager-1"
+    exit 1
+fi
+
+echo "Resolved resourcemanager-1 to $IP, starting socat..."
+
 exec socat TCP-LISTEN:8000,fork,reuseaddr TCP4:$IP:8000
 ```
 
-4. We want socat to be persistent across reboots and automatically restart upon crashes or cases where its process is being killed.
+4. We want socat to be persistent across reboots and automatically restart upon crashes or cases where its process is being killed or cases where `resourcemanager-1` cannot be resolved (typically happens when we start this script before launching GNS).
 For that reason, we will define it as a service (paste inside /etc/systemd/system/socat-forward-port-8000.service):
 
 ```
