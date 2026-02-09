@@ -302,6 +302,7 @@ Congratulations! We have a persistent and fast solution to forward requests from
 
 ## Usage in GNS3 Cluster
 
-1. **Enter resourcemanager**, edit `automatic_experiments_parameters.py`
-2. **Run**: `hadoop fs -rm -r /output`
-3. **Run**: `python3 run_task.py -mp "/home/mapreduce/<your dir name>/mapper.py" -rp "/home/mapreduce/<your dir name>/reducer.py"`
+1. **Enter resourcemanager**
+2. **Run**: `cd /home`
+3. **Run**: `hadoop fs -rm -r /output`
+4. **Run**: `python3 run_task.py -mp "/home/mapreduce/<your dir name>/mapper.py" -rp "/home/mapreduce/<your dir name>/reducer.py"`
