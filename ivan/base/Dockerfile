@@ -66,5 +66,6 @@ RUN apt install -y isc-dhcp-client
 
 RUN ln -sf /usr/bin/python3.13 /usr/local/bin/python3
 RUN ln -sf /usr/bin/python3.13 /usr/local/bin/python
+RUN ln -sf /usr/bin/python3.13 /usr/bin/python
 
 ENTRYPOINT ["/entrypoint.sh"]
