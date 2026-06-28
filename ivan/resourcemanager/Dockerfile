@@ -2,7 +2,7 @@ FROM hadoop-env
 
 MAINTAINER Ivan Ermilov <ivan.s.ermilov@gmail.com>
 
-HEALTHCHECK CMD curl -f http://localhost:8088/ || exit 1
+HEALTHCHECK --retries=3 CMD curl -f http://localhost:8088/ || exit 1
 
 RUN /green_security_measurements/green_security_venv/bin/pip3 install pydantic==2.11.7
 RUN /green_security_measurements/green_security_venv/bin/pip3 install fastapi==0.120.4
