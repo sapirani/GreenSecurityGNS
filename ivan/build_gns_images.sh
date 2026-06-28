@@ -1,8 +1,12 @@
 #!/bin/sh
 
+set -euo pipefail
+
 cd ./base
 
 wait
+
+chmod +x /build_base.sh
 
 sudo ./build_base.sh
 
@@ -16,6 +20,8 @@ cd ./measurements_base
 
 wait
 
+chmod +x ./build_measurements.sh
+
 sudo ./build_measurements.sh
 
 wait
@@ -27,6 +33,8 @@ wait
 cd ./environment_setup
 
 wait
+
+chmod +x ./build_hadoop_env.sh
 
 sudo ./build_hadoop_env.sh
 
