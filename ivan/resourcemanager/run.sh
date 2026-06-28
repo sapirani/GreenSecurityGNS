@@ -8,10 +8,13 @@ PYTHONPATH=/green_security_measurements/Scanner /green_security_measurements/gre
 PYTHONPATH=/green_security_measurements/Scanner /green_security_measurements/green_security_venv/bin/python -m hadoop_optimizer.job_runner.server.api.main  &
 
 python /home/generate_random_words.py -s 0.3 -o /input/0.3_gb --skip-if-exists &
+PID1=$!
 python /home/generate_random_words.py -s 0.7 -o /input/0.7_gb --skip-if-exists &
+PID2=$!
 python /home/generate_random_words.py -s 1.0 -o /input/1.0_gb --skip-if-exists &
+PID3=$!
 
-wait
+wait $PID1 $PID2 $PID3
 
 $HADOOP_HOME/bin/yarn --config $HADOOP_CONF_DIR resourcemanager > resourcemanager_log.txt &
 bash
