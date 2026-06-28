@@ -1,12 +1,12 @@
 #!/bin/sh
 
-set -euo pipefail
+set -eu
 
 cd ./base
 
 wait
 
-chmod +x /build_base.sh
+chmod +x ./build_base.sh
 
 sudo ./build_base.sh
 
