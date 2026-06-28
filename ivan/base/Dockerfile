@@ -64,4 +64,7 @@ RUN apt update && apt install -y build-essential
 RUN apt update
 RUN apt install -y isc-dhcp-client
 
+RUN ln -sf /usr/bin/python3.13 /usr/local/bin/python3
+RUN ln -sf /usr/bin/python3.13 /usr/local/bin/python
+
 ENTRYPOINT ["/entrypoint.sh"]
