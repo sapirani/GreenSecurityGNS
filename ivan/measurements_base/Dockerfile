@@ -5,7 +5,7 @@ RUN apt install -y vim
 RUN apt install -y dmidecode
 RUN apt install -y procps
 RUN apt install -y upower
-RUN apt install -y python3.13-venv
+RUN apt install -y python3-venv
 WORKDIR /green_security_measurements
 
 RUN python3 -m venv green_security_venv
@@ -18,7 +18,7 @@ COPY . .
 # Activate venv in non-interactive sessions
 ENV PATH="source /green_security_measurements/green_security_venv/bin:$PATH"
 # Activate venv in interactive sessions
-RUN echo "source /green_security_measurements/green_security_venv/bin/activate" >> ~/.bashrc
+RUN e cho "source /green_security_measurements/green_security_venv/bin/activate" >> ~/.bashrc
 
 WORKDIR /green_security_measurements/Scanner
 
