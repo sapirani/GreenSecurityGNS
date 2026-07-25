@@ -37,7 +37,7 @@ hadoop_devices_position_config = DevicesPositionConfig(
 constant_devices_position_config = DevicesPositionConfig(
     x_start=-0,
     x_stop=150,
-    y_top=-15,
-    y_bottom=15,
+    y_top=0,
+    y_bottom=0,
     number_of_rows=1,
 )
