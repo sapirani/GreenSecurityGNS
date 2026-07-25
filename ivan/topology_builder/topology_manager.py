@@ -280,7 +280,7 @@ class TopologyManager:
         )
 
         subprocess.run(
-            ["docker", "build", "-t", "hadoop-measurements-base", Path("ivan") / "measurement_base"],
+            ["docker", "build", "-t", "hadoop-measurements-base", Path("ivan") / "measurements_base"],
             check=True,
         )
 
