@@ -1,6 +1,8 @@
 import argparse
 import asyncio
 import subprocess
+import time
+
 from ivan.topology_builder.consts import USERNAME, PASSWORD, GNS3_URL, PROJECT_ID, hadoop_nodes_replicas, \
     constant_nodes_replicas, hadoop_devices_position_config, constant_devices_position_config, IMAGES_TO_REFRESH
 from ivan.topology_builder.topology_manager import TopologyManager
@@ -47,4 +49,5 @@ if __name__ == "__main__":
 
     if should_refresh_socat:
         print("Killing the previous socat process...")
+        time.sleep(3)
         subprocess.run(["sudo", "pkill", "-f", "TCP-LISTEN:8000,fork,reuseaddr"], check=True)

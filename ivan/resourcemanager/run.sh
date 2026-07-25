@@ -2,6 +2,7 @@
 
 #TODO: add health check and use depends in the docker compose
 
+dhclient
 sleep 40
 
 PYTHONPATH=/green_security_measurements/Scanner /green_security_measurements/green_security_venv/bin/python -m scanner_trigger.trigger_receiver --python_path=/green_security_measurements/green_security_venv/bin/python --scanner_path=/green_security_measurements/Scanner/scanner.py -n=19  &
