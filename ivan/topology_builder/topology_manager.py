@@ -17,15 +17,11 @@ class TopologyManager:
             project_id: str,
             hadoop_nodes_replicas: Dict[str, int],
             constant_nodes_replicas: Dict[str, int],
-            hadoop_devices_position_config: DevicesPositionConfig,
-            constant_devices_position_config: DevicesPositionConfig,
     ):
         self.username = username
         self.password = password
         self.gns_url = gns_url
         self.project_id = project_id
-        self.hadoop_devices_position_config = hadoop_devices_position_config
-        self.constant_devices_position_config = constant_devices_position_config
         self.hadoop_nodes_replicas = hadoop_nodes_replicas
         self.constant_nodes_replicas = constant_nodes_replicas
 
@@ -91,12 +87,16 @@ class TopologyManager:
         async with self.session.delete(f"{self.gns_url}/projects/{self.project_id}/nodes/{node_id}") as response:
             response.raise_for_status()
 
+    async def delete_template_task(self, template_id):
+        async with self.session.delete(
+                f"{self.gns_url}/templates/{template_id}") as response:
+            response.raise_for_status()
+
     @staticmethod
-    def ensure_all_nodes_deleted(all_nodes_ids: List[str], results: Future[Tuple]):
-        for node_id, result in zip(all_nodes_ids, results):
+    def ensure_no_exceptions(results: Future[Tuple]):
+        for result in results:
             if isinstance(result, Exception):
-                print(f"Failed to delete node {node_id}: {result}")
-                raise RuntimeError(f"Failed to delete node {node_id}: {result}")
+                raise result
 
     async def delete_old_topology(self):
         print("Deleting old topology..")
@@ -106,9 +106,10 @@ class TopologyManager:
         print("Deleting all nodes..")
         delete_nodes_tasks = [self.delete_node(node_id) for node_id in all_nodes_ids]
         results = await asyncio.gather(*delete_nodes_tasks, return_exceptions=True)
-        self.ensure_all_nodes_deleted(all_nodes_ids, results)
+        self.ensure_no_exceptions(results)
 
     async def get_template_names_to_ids(self):
+        print("Fetching all template IDs..")
         async with self.session.get(f"{self.gns_url}/templates") as response:
             response.raise_for_status()
             templates = await response.json()
@@ -146,27 +147,41 @@ class TopologyManager:
 
         return creation_tasks
 
-    def create_all_nodes_tasks(self, template_names_to_ids: Dict[str, str]) -> List[Coroutine]:
+    def create_all_nodes_tasks(
+            self,
+            template_names_to_ids: Dict[str, str],
+            hadoop_devices_position_config: DevicesPositionConfig,
+            constant_devices_position_config: DevicesPositionConfig,
+    ) -> List[Coroutine]:
         create_hadoop_nodes_tasks = self._create_nodes_tasks(
             template_names_to_ids,
             self.hadoop_nodes_replicas,
-            self.hadoop_devices_position_config
+            hadoop_devices_position_config
         )
 
         create_constant_nodes_tasks = self._create_nodes_tasks(
             template_names_to_ids,
             self.constant_nodes_replicas,
-            self.constant_devices_position_config
+            constant_devices_position_config
         )
 
         return [*create_hadoop_nodes_tasks, *create_constant_nodes_tasks]
 
-    async def create_all_nodes(self, template_names_to_ids: Dict[str, str]) -> Dict[str, str]:
-        creation_tasks = self.create_all_nodes_tasks(template_names_to_ids)
+    async def create_all_nodes(
+            self,
+            template_names_to_ids: Dict[str, str],
+            hadoop_devices_position_config: DevicesPositionConfig,
+            constant_devices_position_config: DevicesPositionConfig
+    ) -> Dict[str, str]:
+        creation_tasks = self.create_all_nodes_tasks(
+            template_names_to_ids,
+            hadoop_devices_position_config,
+            constant_devices_position_config
+        )
         created_nodes_results = await asyncio.gather(*creation_tasks)
+        self.ensure_no_exceptions(created_nodes_results)
         print("Created all nodes")
 
-        # Process results sequentially to extract IDs
         return {node["name"]: node["node_id"] for node in created_nodes_results}
 
     async def create_link(self, link_conf: Dict[str, Any]):
@@ -190,31 +205,67 @@ class TopologyManager:
 
             link_tasks.append(self.create_link(link_config))
 
-        # Execute all link commands concurrently
-        await asyncio.gather(*link_tasks)
+        results = await asyncio.gather(*link_tasks)
+        self.ensure_no_exceptions(results)
         print("Created all links")
 
     async def start_all_nodes(self):
         async with self.session.post(f"{self.gns_url}/projects/{self.project_id}/nodes/start") as response:
             response.raise_for_status()
 
-    async def create_topology(self):
+    async def create_topology(
+            self,
+            hadoop_devices_position_config: DevicesPositionConfig,
+            constant_devices_position_config: DevicesPositionConfig
+    ):
         print("Starting creating topology...")
         print("Fetching all templates ids")
         template_names_to_ids = await self.get_template_names_to_ids()
 
         print("Creating all nodes..")
-        node_name_to_id = await self.create_all_nodes(template_names_to_ids)
+        node_name_to_id = await self.create_all_nodes(
+            template_names_to_ids, hadoop_devices_position_config,
+            constant_devices_position_config
+        )
 
         print("Creating all links..")
         await self.create_all_links(node_name_to_id)
 
 
-    async def restart_entire_topology(self):
+    async def restart_entire_topology(
+            self,
+            hadoop_devices_position_config: DevicesPositionConfig,
+            constant_devices_position_config: DevicesPositionConfig
+    ):
         await self.delete_old_topology()
-        await self.create_topology()
+        await self.create_topology(hadoop_devices_position_config, constant_devices_position_config)
 
         print("Staring project...")
         await self.start_all_nodes()
         print("Project started successfully.")
 
+    async def refresh_custom_images(self, images_names: List[str]):
+        template_names_to_ids = await self.get_template_names_to_ids()
+        all_delete_tasks = [
+            self.delete_template_task(template_names_to_ids[image_name])
+            for image_name in images_names if image_name in template_names_to_ids
+        ]
+        print("Deleting images:", images_names)
+        results = await asyncio.gather(*all_delete_tasks)
+        self.ensure_no_exceptions(results)
+
+        print("Creating images:", images_names)
+        create_images_tasks = [self.create_template(image_name) for image_name in images_names]
+        results = await asyncio.gather(*create_images_tasks)
+        self.ensure_no_exceptions(results)
+
+    async def create_template(self, template_name: str):
+        templates_config = {
+            "compute_id": "local",
+            "name": template_name,
+            "template_type": "docker",
+            "image": f"{template_name}:latest",
+        }
+
+        async with self.session.post(f"{self.gns_url}/templates", json=templates_config) as response:
+            response.raise_for_status()
