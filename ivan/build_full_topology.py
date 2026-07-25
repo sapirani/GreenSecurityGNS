@@ -1,0 +1,136 @@
+import time
+
+import asyncio
+import json
+import aiohttp
+import subprocess
+
+import yaml
+
+with open("config.yaml") as f:
+    config = yaml.safe_load(f)
+    USERNAME = config["username"]
+    PASSWORD = config["password"]
+
+GNS3_URL = "http://192.168.140.110:3080/v2"
+PROJECT_ID = "7ea71294-5410-4032-90aa-a2e6acdfb2ae"
+
+hadoop_nodes_replicas = {
+    "resourcemanager": 1,
+    "namenode": 1,
+    "datanode": 3,
+    "historyserver": 1,
+}
+
+constant_nodes_replicas = {
+    "NAT": 1,
+    "Ethernet switch": 1,
+}
+
+X_START = -300
+X_STOP = 300
+
+switch_id = None
+
+all_nodes_replicas = {**hadoop_nodes_replicas, **constant_nodes_replicas}
+total_hadoop_devices = sum(hadoop_nodes_replicas.values())
+
+
+async def create_single_node(session, auth, template_name, template_id, device_num):
+    """Worker task to create an individual node concurrently."""
+    global switch_id
+
+    node_config = {
+        "compute_id": "local",
+        "x": X_START + int((X_STOP - X_START) * (device_num / total_hadoop_devices)),
+        "y": 0,
+    }
+
+    url = f"{GNS3_URL}/projects/{PROJECT_ID}/templates/{template_id}"
+    async with session.post(url, json=node_config, auth=auth) as response:
+        response.raise_for_status()
+        created_node = await response.json()
+
+        print("\nJSON response:")
+        print(json.dumps(created_node, indent=4))
+        print("Created node:", created_node)
+
+        if "Ethernet switch" == template_name:  # Handles potential name increments like Ethernet switch-1
+            switch_id = created_node["node_id"]
+
+        return created_node
+
+
+async def main():
+    auth = aiohttp.BasicAuth(USERNAME, PASSWORD)
+
+    async with aiohttp.ClientSession() as session:
+        # 1. Fetch all templates asynchronously
+        async with session.get(f"{GNS3_URL}/templates", auth=auth) as response:
+            response.raise_for_status()
+            templates = await response.json()
+
+        template_name_to_id = {
+            template["name"]: template["template_id"]
+            for template in templates if template["name"] in all_nodes_replicas
+        }
+
+        # 2. Build the task list for concurrent node creation
+        creation_tasks = []
+        device_num = 0
+
+        for template_name, count in all_nodes_replicas.items():
+            template_id = template_name_to_id[template_name]
+            for _ in range(count):
+                task = create_single_node(session, auth, template_name, template_id, device_num)
+                creation_tasks.append(task)
+                device_num += 1
+
+        # Fire all node creation requests simultaneously
+        created_nodes_results = await asyncio.gather(*creation_tasks)
+
+        # Process results sequentially to extract IDs
+        node_name_to_id = {}
+        for node in created_nodes_results:
+            node_name_to_id[node["name"]] = node["node_id"]
+
+        # 3. Create all links concurrently
+        link_tasks = []
+        for switch_port, node_id in enumerate(node_name_to_id.values()):
+            if node_id == switch_id:
+                continue
+
+            link_config = {
+                "nodes": [
+                    {"node_id": node_id, "port_number": 0, "adapter_number": 0},
+                    {"node_id": switch_id, "port_number": switch_port, "adapter_number": 0}
+                ]
+            }
+
+            async def post_link(link_conf):
+                url = f"{GNS3_URL}/projects/{PROJECT_ID}/links"
+                async with session.post(url, json=link_conf, auth=auth) as resp:
+                    link_res = await resp.json()
+                    print("\nLink JSON response:")
+                    print(json.dumps(link_res, indent=4))
+                    resp.raise_for_status()
+
+            link_tasks.append(post_link(link_config))
+
+        # Execute all link commands concurrently
+        await asyncio.gather(*link_tasks)
+
+        # 4. Start all project nodes
+        print("\nStarting all nodes...")
+        async with session.post(f"{GNS3_URL}/projects/{PROJECT_ID}/nodes/start", auth=auth) as response:
+            response.raise_for_status()
+            print("All nodes started successfully.")
+
+
+if __name__ == "__main__":
+    x = time.time()
+    asyncio.run(main())
+    print(time.time() - x)
+
+    time.sleep(3)
+    ip = subprocess.run("ps aux | grep socat | grep TCP-LISTEN:8000,fork,reuseaddr | awk '{print $2}' | xargs sudo kill", shell=True, check=True)
