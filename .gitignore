@@ -178,4 +178,4 @@ cython_debug/
 
 config.yaml
 
-nodes_configuration_code/program_parameters.py
+ivan/nodes_configuration_code/program_parameters.py
