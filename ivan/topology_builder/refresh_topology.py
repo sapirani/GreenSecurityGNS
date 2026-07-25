@@ -49,5 +49,5 @@ if __name__ == "__main__":
 
     if should_refresh_socat:
         print("Killing the previous socat process...")
-        time.sleep(20)   # waiting for the dhclient to receive a new ip
+        time.sleep(30)   # waiting for the dhclient to receive a new ip
         subprocess.run(["sudo", "pkill", "-f", "TCP-LISTEN:8000,fork,reuseaddr"], check=True)
