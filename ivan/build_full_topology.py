@@ -1,9 +1,7 @@
 import asyncio
 import json
-
 import aiohttp
 import subprocess
-
 import yaml
 
 with open("config.yaml") as f:
@@ -49,10 +47,6 @@ async def create_single_node(session, auth, template_name, template_id, device_n
     async with session.post(url, json=node_config, auth=auth) as response:
         response.raise_for_status()
         created_node = await response.json()
-
-        print("\nJSON response:")
-        print(json.dumps(created_node, indent=4))
-        print("Created node:", created_node)
 
         if "Ethernet switch" == template_name:  # Handles potential name increments like Ethernet switch-1
             switch_id = created_node["node_id"]
@@ -110,8 +104,6 @@ async def main():
                 url = f"{GNS3_URL}/projects/{PROJECT_ID}/links"
                 async with session.post(url, json=link_conf, auth=auth) as resp:
                     link_res = await resp.json()
-                    print("\nLink JSON response:")
-                    print(json.dumps(link_res, indent=4))
                     resp.raise_for_status()
 
             link_tasks.append(post_link(link_config))
@@ -120,7 +112,6 @@ async def main():
         await asyncio.gather(*link_tasks)
 
         # 4. Start all project nodes
-        print("\nStarting all nodes...")
         async with session.post(f"{GNS3_URL}/projects/{PROJECT_ID}/nodes/start", auth=auth) as response:
             response.raise_for_status()
             print("All nodes started successfully.")
@@ -131,4 +122,5 @@ if __name__ == "__main__":
     subprocess.run(["sudo", "-v"], check=True)
     asyncio.run(main())
 
+    print("Killing the previous socat process...")
     subprocess.run(["sudo", "pkill", "-f", "TCP-LISTEN:8000,fork,reuseaddr"], check=True)
