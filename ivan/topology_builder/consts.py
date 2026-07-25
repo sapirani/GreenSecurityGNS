@@ -8,7 +8,7 @@ PROJECT_ID = "8b1df7a1-d0ea-4bd9-a5d7-f0c6bb61b40b"
 IMAGES_TO_REFRESH = ["resourcemanager", "namenode", "historyserver", "datanode"]
 
 
-with open(Path("topology_builder") / "config.yaml") as f:
+with open(Path("ivan") / Path("topology_builder") / "config.yaml") as f:
     config = yaml.safe_load(f)
     USERNAME = config["username"]
     PASSWORD = config["password"]
