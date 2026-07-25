@@ -132,6 +132,4 @@ if __name__ == "__main__":
     subprocess.run(["sudo", "-v"], check=True)
     asyncio.run(main())
 
-    # wait for DHCP
-    time.sleep(2)
     subprocess.run(["sudo", "pkill", "-f", "TCP-LISTEN:8000,fork,reuseaddr"], check=True)
