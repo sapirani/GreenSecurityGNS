@@ -1,9 +1,10 @@
 import asyncio
+import subprocess
 from asyncio import Future
+from concurrent.futures import ThreadPoolExecutor
 from typing import Tuple, Dict, List, Any
 import aiohttp
 from typing_extensions import Coroutine
-
 from ivan.topology_builder.devices_position_config import DevicesPositionConfig
 
 
@@ -269,3 +270,34 @@ class TopologyManager:
 
         async with self.session.post(f"{self.gns_url}/templates", json=templates_config) as response:
             response.raise_for_status()
+
+    @staticmethod
+    def build_docker_images(images_names: List[str]):
+        subprocess.run(
+            ["docker", "build", "-t", "hadoop-base-start", "base"],
+            check=True,
+        )
+
+        subprocess.run(
+            ["docker", "build", "-t", "hadoop-measurements-base", "."],
+            check=True,
+        )
+
+        subprocess.run(
+            ["docker", "build", "-t", "hadoop-env", "environment_setup"],
+            check=True,
+        )
+
+        subprocess.run(
+            ["docker", "build", "-t", "hadoop-env", "environment_setup"],
+            check=True,
+        )
+
+        def build_image(image_name: str):
+            subprocess.run(
+                ["docker", "build", "-t", image_name, image_name],
+                check=True,
+            )
+
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            list(executor.map(build_image, images_names))
