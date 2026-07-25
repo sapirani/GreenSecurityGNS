@@ -2,6 +2,7 @@ import asyncio
 import subprocess
 from asyncio import Future
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 from typing import Tuple, Dict, List, Any
 import aiohttp
 from typing_extensions import Coroutine
@@ -274,30 +275,25 @@ class TopologyManager:
     @staticmethod
     def build_docker_images(images_names: List[str]):
         subprocess.run(
-            ["docker", "build", "-t", "hadoop-base-start", "base"],
+            ["docker", "build", "-t", "hadoop-base-start", Path("ivan") / "base"],
             check=True,
         )
 
         subprocess.run(
-            ["docker", "build", "-t", "hadoop-measurements-base", "."],
+            ["docker", "build", "-t", "hadoop-measurements-base", Path("ivan") / "measurement_base"],
             check=True,
         )
 
         subprocess.run(
-            ["docker", "build", "-t", "hadoop-env", "environment_setup"],
-            check=True,
-        )
-
-        subprocess.run(
-            ["docker", "build", "-t", "hadoop-env", "environment_setup"],
+            ["docker", "build", "-t", "hadoop-env", Path("ivan") / "environment_setup"],
             check=True,
         )
 
         def build_image(image_name: str):
             subprocess.run(
-                ["docker", "build", "-t", image_name, image_name],
+                ["docker", "build", "-t", image_name, Path("ivan") / image_name],
                 check=True,
             )
 
-        with ThreadPoolExecutor(max_workers=4) as executor:
+        with ThreadPoolExecutor(max_workers=len(images_names)) as executor:
             list(executor.map(build_image, images_names))
