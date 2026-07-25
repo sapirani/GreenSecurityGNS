@@ -176,6 +176,6 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-config.yaml
+ivan/topology_builder/config.yaml
 
 ivan/nodes_configuration_code/program_parameters.py
