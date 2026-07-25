@@ -135,4 +135,3 @@ if __name__ == "__main__":
     # wait for DHCP
     time.sleep(2)
     subprocess.run(["sudo", "pkill", "-f", "TCP-LISTEN:8000,fork,reuseaddr"], check=True)
-    ip = subprocess.run("ps aux | grep socat | grep TCP-LISTEN:8000,fork,reuseaddr | awk '{print $2}' | xargs sudo kill", shell=True, check=True)
