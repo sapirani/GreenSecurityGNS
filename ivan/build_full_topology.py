@@ -1,5 +1,7 @@
 import argparse
 import asyncio
+from typing import Tuple
+
 import aiohttp
 import subprocess
 import yaml
@@ -15,32 +17,51 @@ PROJECT_ID = "8b1df7a1-d0ea-4bd9-a5d7-f0c6bb61b40b"
 hadoop_nodes_replicas = {
     "resourcemanager": 1,
     "namenode": 1,
-    "datanode": 3,
     "historyserver": 1,
+    "datanode": 3,
 }
 
 constant_nodes_replicas = {
-    "NAT": 1,
     "Ethernet switch": 1,
+    "NAT": 1,
 }
 
-X_START = -300
-X_STOP = 300
+HADOOP_DEVICE_X_START = -200
+HADOOP_DEVICE_X_STOP = 200
+HADOOP_DEVICE_Y_TOP = -100
+HADOOP_DEVICE_Y_BOTTOM = 100
+
+CONSTANT_DEVICE_X_START = 0
+CONSTANT_DEVICE_X_STOP = 100
+CONSTANT_DEVICE_Y_TOP = 0
+CONSTANT_DEVICE_Y_BOTTOM = 0
 
 switch_id = None
 
 all_nodes_replicas = {**hadoop_nodes_replicas, **constant_nodes_replicas}
-total_hadoop_devices = sum(hadoop_nodes_replicas.values())
 
 
-async def create_single_node(session, auth, template_name, template_id, device_num):
+def get_hadoop_device_position(device_num: int, total_hadoop_devices: int, x_start, x_stop, y_top, y_bottom, number_of_rows) -> Tuple[float, float]:
+    num_of_devices_in_row = int(total_hadoop_devices / number_of_rows)
+
+    if number_of_rows == 1:
+        y = y_top
+    else:
+        y = y_top + int((y_bottom - y_top) * (device_num // num_of_devices_in_row) / (number_of_rows - 1))
+
+    x = x_start + int((x_stop - x_start) * (device_num % num_of_devices_in_row) / (num_of_devices_in_row - 1))
+
+    return x, y
+
+
+async def create_single_node(session, auth, template_name, template_id, x, y):
     """Worker task to create an individual node."""
     global switch_id
 
     node_config = {
         "compute_id": "local",
-        "x": X_START + int((X_STOP - X_START) * (device_num / total_hadoop_devices)),
-        "y": 0,
+        "x": x,
+        "y": y,
     }
 
     url = f"{GNS3_URL}/projects/{PROJECT_ID}/templates/{template_id}"
@@ -63,81 +84,120 @@ async def delete_node(session, auth, node_id: str):
     async with session.delete(f"{GNS3_URL}/projects/{PROJECT_ID}/nodes/{node_id}", auth=auth) as response:
         response.raise_for_status()
 
-async def main():
-    auth = aiohttp.BasicAuth(USERNAME, PASSWORD)
+def ensure_all_nodes_deleted(all_nodes_ids, results):
+    for node_id, result in zip(all_nodes_ids, results):
+        if isinstance(result, Exception):
+            print(f"Failed to delete node {node_id}: {result}")
+            raise RuntimeError(f"Failed to delete node {node_id}: {result}")
 
-    async with aiohttp.ClientSession() as session:
-        print("Fetching all nodes ids...")
-        all_nodes_ids = await get_all_nodes_ids(session, auth)
 
-        delete_nodes_tasks = [delete_node(session, auth, node_id) for node_id in all_nodes_ids]
-        print("Deleting all nodes..")
-        results = await asyncio.gather(*delete_nodes_tasks, return_exceptions=True)
+async def delete_old_topology(session, auth):
+    print("Deleting old topology..")
+    print("Fetching all nodes ids...")
+    all_nodes_ids = await get_all_nodes_ids(session, auth)
 
-        for node_id, result in zip(all_nodes_ids, results):
-            if isinstance(result, Exception):
-                print(f"Failed to delete node {node_id}: {result}")
+    print("Deleting all nodes..")
+    delete_nodes_tasks = [delete_node(session, auth, node_id) for node_id in all_nodes_ids]
+    results = await asyncio.gather(*delete_nodes_tasks, return_exceptions=True)
+    ensure_all_nodes_deleted(all_nodes_ids, results)
 
-        print("Starting creating topology...")
-        # 1. Fetch all templates asynchronously
-        async with session.get(f"{GNS3_URL}/templates", auth=auth) as response:
-            response.raise_for_status()
-            templates = await response.json()
 
-        template_name_to_id = {
-            template["name"]: template["template_id"]
-            for template in templates if template["name"] in all_nodes_replicas
+async def get_template_names_to_ids(session, auth):
+    async with session.get(f"{GNS3_URL}/templates", auth=auth) as response:
+        response.raise_for_status()
+        templates = await response.json()
+
+    return {
+        template["name"]: template["template_id"]
+        for template in templates if template["name"] in all_nodes_replicas
+    }
+
+def _flatten_dict_of_counts(dict_of_counts):
+    return [
+        node
+        for node, replicas in dict_of_counts.items()
+        for _ in range(replicas)
+    ]
+
+def create_all_nodes_tasks(session, auth, template_names_to_ids):
+    creation_tasks = []
+
+    flattened_hadoop_templates = _flatten_dict_of_counts(hadoop_nodes_replicas)
+    for hadoop_device_num, template_name in enumerate(flattened_hadoop_templates):
+        template_id = template_names_to_ids[template_name]
+        x, y = get_hadoop_device_position(hadoop_device_num, len(flattened_hadoop_templates), HADOOP_DEVICE_X_START, HADOOP_DEVICE_X_STOP, HADOOP_DEVICE_Y_TOP, HADOOP_DEVICE_Y_BOTTOM, 2)
+        creation_tasks.append(create_single_node(session, auth, template_name, template_id, x, y))
+
+    flattened_constant_templates = _flatten_dict_of_counts(constant_nodes_replicas)
+    for constant_device_num, template_name in enumerate(flattened_constant_templates):
+        template_id = template_names_to_ids[template_name]
+        x, y = get_hadoop_device_position(constant_device_num, len(flattened_constant_templates), CONSTANT_DEVICE_X_START, CONSTANT_DEVICE_X_STOP, CONSTANT_DEVICE_Y_TOP, CONSTANT_DEVICE_Y_TOP, 1)
+        creation_tasks.append(create_single_node(session, auth, template_name, template_id, x, y))
+
+    return creation_tasks
+
+
+async def create_all_nodes(session, auth, template_names_to_ids):
+    creation_tasks = create_all_nodes_tasks(session, auth, template_names_to_ids)
+    created_nodes_results = await asyncio.gather(*creation_tasks)
+    print("Created all nodes")
+
+    # Process results sequentially to extract IDs
+    return {node["name"]: node["node_id"] for node in created_nodes_results}
+
+
+async def create_all_links(session, auth, node_name_to_id):
+    link_tasks = []
+    for switch_port, node_id in enumerate(node_name_to_id.values()):
+        if node_id == switch_id:
+            continue
+
+        link_config = {
+            "nodes": [
+                {"node_id": node_id, "port_number": 0, "adapter_number": 0},
+                {"node_id": switch_id, "port_number": switch_port, "adapter_number": 0}
+            ]
         }
 
-        # 2. Build the task list for concurrent node creation
-        creation_tasks = []
-        device_num = 0
+        async def post_link(link_conf):
+            url = f"{GNS3_URL}/projects/{PROJECT_ID}/links"
+            async with session.post(url, json=link_conf, auth=auth) as resp:
+                await resp.json()
+                resp.raise_for_status()
 
-        for template_name, count in all_nodes_replicas.items():
-            template_id = template_name_to_id[template_name]
-            for _ in range(count):
-                task = create_single_node(session, auth, template_name, template_id, device_num)
-                creation_tasks.append(task)
-                device_num += 1
+        link_tasks.append(post_link(link_config))
 
-        # Fire all node creation requests simultaneously
-        created_nodes_results = await asyncio.gather(*creation_tasks)
-        print("Created all nodes")
+    # Execute all link commands concurrently
+    await asyncio.gather(*link_tasks)
+    print("Created all links")
 
-        # Process results sequentially to extract IDs
-        node_name_to_id = {}
-        for node in created_nodes_results:
-            node_name_to_id[node["name"]] = node["node_id"]
 
-        # 3. Create all links concurrently
-        link_tasks = []
-        for switch_port, node_id in enumerate(node_name_to_id.values()):
-            if node_id == switch_id:
-                continue
+async def start_project(session, auth):
+    async with session.post(f"{GNS3_URL}/projects/{PROJECT_ID}/nodes/start", auth=auth) as response:
+        response.raise_for_status()
 
-            link_config = {
-                "nodes": [
-                    {"node_id": node_id, "port_number": 0, "adapter_number": 0},
-                    {"node_id": switch_id, "port_number": switch_port, "adapter_number": 0}
-                ]
-            }
 
-            async def post_link(link_conf):
-                url = f"{GNS3_URL}/projects/{PROJECT_ID}/links"
-                async with session.post(url, json=link_conf, auth=auth) as resp:
-                    await resp.json()
-                    resp.raise_for_status()
+async def create_topology(session, auth):
+    print("Starting creating topology...")
+    print("Fetching all templates ids")
+    template_names_to_ids = await get_template_names_to_ids(session, auth)
 
-            link_tasks.append(post_link(link_config))
+    print("Creating all nodes..")
+    node_name_to_id = await create_all_nodes(session, auth, template_names_to_ids)
 
-        # Execute all link commands concurrently
-        await asyncio.gather(*link_tasks)
-        print("Created all links")
+    print("Creating all links..")
+    await create_all_links(session, auth, node_name_to_id)
 
-        # 4. Start all project nodes
-        async with session.post(f"{GNS3_URL}/projects/{PROJECT_ID}/nodes/start", auth=auth) as response:
-            response.raise_for_status()
-            print("All nodes started successfully.")
+    print("Staring project successfully.")
+    await start_project(session, auth)
+    print("Project started successfully.")
+
+
+async def main():
+    auth = aiohttp.BasicAuth(USERNAME, PASSWORD)
+    async with aiohttp.ClientSession() as session:
+        await delete_old_topology(session, auth)
+        await create_topology(session, auth)
 
 
 if __name__ == "__main__":
