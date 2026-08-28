@@ -17,5 +17,5 @@ PID3=$!
 
 wait $PID1 $PID2 $PID3
 
-$HADOOP_HOME/bin/yarn --config $HADOOP_CONF_DIR resourcemanager > resourcemanager_log.txt &
+$HADOOP_HOME/bin/yarn --config $HADOOP_CONF_DIR --daemon start resourcemanager
 bash

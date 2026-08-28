@@ -10,8 +10,8 @@ PYTHONPATH=/green_security_measurements/Scanner /green_security_measurements/gre
 
 #NOTE: originally it was only $HADOOP_HOME/bin/hdfs --config $HADOOP_CONF_DIR datanode
 
-$HADOOP_HOME/bin/hdfs --config $HADOOP_CONF_DIR datanode > datanode_log.txt &
+$HADOOP_HOME/bin/hdfs --config $HADOOP_CONF_DIR --daemon start datanode
 
-$HADOOP_HOME/bin/yarn --config $HADOOP_CONF_DIR nodemanager > nodemanager_log.txt &
+$HADOOP_HOME/bin/yarn --config $HADOOP_CONF_DIR --daemon start nodemanager
 
 bash
