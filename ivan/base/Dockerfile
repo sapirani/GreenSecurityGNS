@@ -12,7 +12,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
       netcat-traditional \
       gnupg \
       libsnappy-dev \
-      python3 \
+      python3.13 \
       vim \
       iproute2 \
       tcpdump \
@@ -58,10 +58,15 @@ RUN chmod a+x /entrypoint.sh
 RUN apt-get update
 RUN apt-get install -y nano
 RUN apt-get install -y dmidecode
-RUN apt-get install -y python3-dev libjpeg-dev zlib1g-dev
+RUN apt-get install -y python3.13-dev libjpeg-dev zlib1g-dev
 RUN apt update && apt install -y build-essential
 
 RUN apt update
 RUN apt install -y isc-dhcp-client
+
+RUN ln -sf /usr/bin/python3.13 /usr/local/bin/python3
+RUN ln -sf /usr/bin/python3.13 /usr/local/bin/python
+RUN ln -sf /usr/bin/python3.13 /usr/bin/python
+RUN ln -sf /usr/bin/python3.13 /usr/bin/python3
 
 ENTRYPOINT ["/entrypoint.sh"]
