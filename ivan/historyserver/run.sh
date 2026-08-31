@@ -2,5 +2,6 @@
 
 PYTHONPATH=/green_security_measurements/Scanner /green_security_measurements/green_security_venv/bin/python -m scanner_trigger.trigger_receiver --python_path=/green_security_measurements/green_security_venv/bin/python --scanner_path=/green_security_measurements/Scanner/scanner.py -n=19 &
 
-$HADOOP_HOME/bin/yarn --config $HADOOP_CONF_DIR --daemon start historyserver
+$HADOOP_HOME/bin/yarn --config $HADOOP_CONF_DIR --daemon start timelineserver
+$HADOOP_HOME/bin/mapred --config $HADOOP_CONF_DIR --daemon start historyserver
 bash
