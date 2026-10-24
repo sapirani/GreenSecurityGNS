@@ -277,3 +277,32 @@ sudo systemctl start socat-forward-8000
 ```
 
 Congratulations! We have a persistent and fast solution to forward requests from the host machine into the resourcemanager, while enabling dynamic ip allocations and resolutions.
+
+## MapReduce Tasks Overview
+
+### Available Tasks (under `ivan/resourcemanager/mapreduce/`)
+
+**Word Count** (`word_count/`)
+- **Classic text processing**: Counts occurrences of each word across input documents
+
+**Character Count** (`char_count/`)  
+- **Sequential I/O scan**: Simple per-character counting
+
+**Pi Estimation** (`pi_estimation/`)
+- **Monte Carlo simulation**: Sample random coordinates, reducers compute quadrant membership
+
+**Anagrams** (`anagrams/`)
+- **String sorting + grouping**: Sort word characters, group anagrams by signature
+
+**Line Statistics** (`line_statistics/`)
+- **Aggregate line metrics**: Single "STATS" key, all mapper outputs to 1 reducer (default behavior)
+
+**Sentence Length Statistics** (`sentence_length_statistics/`)
+- **Linguistic analysis**: Group sentences by first word, compute length stats per group
+
+## Usage in GNS3 Cluster
+
+1. **Enter resourcemanager**
+2. **Run**: `cd /home`
+3. **Run**: `hadoop fs -rm -r /output`
+4. **Run**: `python3 run_task.py -mp "/home/mapreduce/<your dir name>/mapper.py" -rp "/home/mapreduce/<your dir name>/reducer.py"`
