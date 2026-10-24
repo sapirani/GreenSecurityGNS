@@ -1,9 +1,10 @@
 import asyncio
+import shutil
 import subprocess
 from asyncio import Future
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Tuple, Dict, List, Any
+from typing import Tuple, Dict, List, Any, Set
 import aiohttp
 from typing_extensions import Coroutine
 from ivan.topology_builder.devices_position_config import DevicesPositionConfig
@@ -109,6 +110,8 @@ class TopologyManager:
         delete_nodes_tasks = [self.delete_node(node_id) for node_id in all_nodes_ids]
         results = await asyncio.gather(*delete_nodes_tasks, return_exceptions=True)
         self.ensure_no_exceptions(results)
+
+        await self.delete_orphaned_nodes(set(all_nodes_ids))
 
     async def get_template_names_to_ids(self):
         print("Fetching all template IDs..")
@@ -245,6 +248,24 @@ class TopologyManager:
         print("Staring project...")
         await self.start_all_nodes()
         print("Project started successfully.")
+
+    async def get_project_local_basedir(self) -> str:
+        async with self.session.get(f"{self.gns_url}/projects/{self.project_id}") as response:
+            response.raise_for_status()
+            res = await response.json()
+            return res["path"]
+
+    async def delete_orphaned_nodes(self, gns_aware_nodes_ids: Set[str]) -> None:
+        project_local_basedir = await self.get_project_local_basedir()
+        project_disk_nodes = Path(f"{project_local_basedir}/project-files/docker")
+
+        disk_ids = {path.name for path in project_disk_nodes.iterdir() if path.is_dir()}
+        orphaned_ids = disk_ids - gns_aware_nodes_ids
+
+        for node_id in sorted(orphaned_ids):
+            print("deleting orphaned_id:", node_id)
+            print("full path to delete:", project_disk_nodes / node_id)
+            # shutil.rmtree(project_disk_nodes / node_id)
 
     async def refresh_custom_images(self, images_names: List[str]):
         template_names_to_ids = await self.get_template_names_to_ids()
