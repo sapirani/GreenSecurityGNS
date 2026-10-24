@@ -263,9 +263,9 @@ class TopologyManager:
         orphaned_ids = disk_ids - gns_aware_nodes_ids
 
         for node_id in sorted(orphaned_ids):
-            print("deleting orphaned_id:", node_id)
-            print("full path to delete:", project_disk_nodes / node_id)
-            # shutil.rmtree(project_disk_nodes / node_id)
+            full_path = project_disk_nodes / node_id
+            print("Deleting orphaned_id:", node_id, ", full path:", full_path)
+            shutil.rmtree(full_path)
 
     async def refresh_custom_images(self, images_names: List[str]):
         template_names_to_ids = await self.get_template_names_to_ids()
