@@ -1,5 +1,4 @@
 import asyncio
-import shutil
 import subprocess
 from asyncio import Future
 from concurrent.futures import ThreadPoolExecutor
@@ -265,7 +264,7 @@ class TopologyManager:
         for node_id in sorted(orphaned_ids):
             full_path = project_disk_nodes / node_id
             print("Deleting orphaned_id:", node_id, ", full path:", full_path)
-            shutil.rmtree(full_path)
+            subprocess.run(["sudo", "rm", "-r", "--", str(full_path)], check=True)
 
     async def refresh_custom_images(self, images_names: List[str]):
         template_names_to_ids = await self.get_template_names_to_ids()
