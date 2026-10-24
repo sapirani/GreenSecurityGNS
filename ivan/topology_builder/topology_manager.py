@@ -263,7 +263,7 @@ class TopologyManager:
 
         for node_id in sorted(orphaned_ids):
             full_path = project_disk_nodes / node_id
-            print("Deleting orphaned_id:", node_id, ", full path:", full_path)
+            print("Deleting orphaned id:", node_id, ", full path:", full_path)
             subprocess.run(["sudo", "rm", "-r", "--", str(full_path)], check=True)
 
     async def refresh_custom_images(self, images_names: List[str]):
